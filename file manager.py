@@ -27,6 +27,39 @@ class Ui_MainWindow(object):
             item.setIcon(icon)
             item.setText(str(self.available_Folders[i]))
             self.listWidget.addItem(item)
+    def setupUi(self, MainWindow):
+        self.address_bar = ''
+        self.path = []
+        self.opening_lst = []
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(600, 600)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 600, 600))
+        self.gridLayoutWidget.setObjectName("gridLayoutWidget")
+        self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout.setObjectName("gridLayout")
+        self.listWidget = QtWidgets.QListWidget(self.gridLayoutWidget)
+        self.listWidget.setObjectName("listWidget")
+        self.change_item_listwidget(self.available_Folders)
+        self.gridLayout.addWidget(self.listWidget, 1, 0, 1, 1)
+        self.lineEdit = QtWidgets.QLineEdit(self.gridLayoutWidget)
+        self.lineEdit.setObjectName("lineEdit")
+        self.gridLayout.addWidget(self.lineEdit, 0, 0, 1, 1)
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 600, 20))
+        self.menubar.setObjectName("menubar")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+        self.listWidget.itemDoubleClicked.connect(self.selecticoncange)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        #print(self.path)
+
     def file_or_folder(self, text):
         flag = False
         for each_format in self.Formats:
