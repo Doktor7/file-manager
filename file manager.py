@@ -73,3 +73,51 @@ class Ui_MainWindow(object):
          for folderName in os.listdir(paths):
              if folderName != '$RECYCLE.BIN' and folderName != 'System Volume Information':
                 self.available_Folders.append(folderName)
+
+    def selecticoncange(self):
+        self.available_Folders.clear()
+        self.available_Folders.append('...')
+        for currentitem in self.listWidget.selectedItems():
+            self.opening_lst.append(currentitem.text())
+            self.path.append(currentitem.text())
+            # print(self.path)
+            if currentitem.text() == '...' and len(self.path) != 2:
+                del self.path[-1]
+                del self.path[-1]
+            if currentitem.text() == '...' and len(self.path) == 2:
+                # print('kir')
+                self.listWidget.clear()
+                self.path.clear()
+                self.available_Folders = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
+
+            if len(self.path) == 1:
+                self.dir_list_folder(self.path[0] + '/')
+            if len(self.path) > 1:
+                if self.file_or_folder(currentitem.text()) == 'Folder':
+                    self.dir_list_folder('/'.join(self.path))
+                if self.file_or_folder(currentitem.text()) == 'File':
+                    os.startfile('/'.join(self.path))
+        # print(self.path)
+        if len(self.path) > 0:
+            if self.file_or_folder(self.path[-1]) == 'Folder':
+                self.listWidget.clear()
+                self.lineEdit.setText(str('/'.join(self.path)))
+            if self.file_or_folder(self.path[-1]) == 'File':
+                del self.path[-1]
+                del self.available_Folders[-1]
+        if len(self.path) == 0:
+            self.lineEdit.setText('')
+
+        # print(self.path)
+        # print(self.available_Folders)
+        self.change_item_listwidget(self.available_Folders)
+        # print(self.available_Folders)
+
+while True:
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())
