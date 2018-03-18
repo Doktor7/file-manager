@@ -210,6 +210,7 @@ class Ui_MainWindow(object):
         self.actionDelete.triggered.connect(self.delete)
         self.actionDelete_2.triggered.connect(self.delete)
         self.actionExit_2.triggered.connect(self.close)
+        self.actionRename_2.triggered.connect(self.rename)
 
     def dir_list_folder(self, paths):
         for folderName in os.listdir(paths):
@@ -310,6 +311,26 @@ class Ui_MainWindow(object):
 
     def close(self):
         sys.exit(app.exec_())
+
+    def rename(self):
+        # print('hi')
+
+        import tkinter as tk
+        from tkinter import simpledialog
+        window = tk.Tk()
+        answer = simpledialog.askstring('rename', 'Enter New Name:', parent=window)
+        First = os.getcwd()
+
+        current = '/'.join(self.path)
+        if len(current) != 0:
+            os.chdir(current)
+        if answer is not None:
+            os.rename(self.Filename[-1], answer)
+        os.chdir(First)
+        self.available_Folders.remove(str(self.Filename[-1]))
+        self.available_Folders.append(answer)
+        self.listWidget.clear()
+        self.change_item_listwidget(self.available_Folders)
 
     def Backward(self):
 
