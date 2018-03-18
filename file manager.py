@@ -1,21 +1,25 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-import os , string
+import os, string, shutil
+
 
 class Ui_MainWindow(object):
     def __init__(self):
         self.available_Folders = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
         self.available_Drives = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
         self.available_Drives2 = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
-    def set_icon(self,file,icon):
-        self.Formats = ['pdf','mp3','jpg','aac','avi','bmp','chm','css','defult','dll','doc','docx',\
-                        'fla','htm','html','ini','jar','jpeg','js','lasso','mdp','mov','mp4','mpg',\
-                        'ogg','ogv','php','png','ppt','py','rb','real','reg','rtf','sgl','swf','txt',\
-                        'vbs','wav','webm','wmv','xls','xlsx','xml','xsl','zip','rar','mkv','exe','srt','3gp',\
+
+    def set_icon(self, file, icon):
+        self.Formats = ['pdf', 'mp3', 'jpg', 'aac', 'avi', 'bmp', 'chm', 'css', 'defult', 'dll', 'doc', 'docx', \
+                        'fla', 'htm', 'html', 'ini', 'jar', 'jpeg', 'js', 'lasso', 'mdp', 'mov', 'mp4', 'mpg', \
+                        'ogg', 'ogv', 'php', 'png', 'ppt', 'py', 'rb', 'real', 'reg', 'rtf', 'sgl', 'swf', 'txt', \
+                        'vbs', 'wav', 'webm', 'wmv', 'xls', 'xlsx', 'xml', 'xsl', 'zip', 'rar', 'mkv', 'exe', 'srt',
+                        '3gp', \
                         'log']
         for format in self.Formats:
             if self.available_Folders[file].endswith(format):
                 icon.addPixmap(QtGui.QPixmap(format), QtGui.QIcon.Normal, QtGui.QIcon.On)
-    def change_item_listwidget(self,list):
+
+    def change_item_listwidget(self, list):
         for i in range(len(self.available_Folders)):
             item = QtWidgets.QListWidgetItem()
             icon = QtGui.QIcon()
@@ -23,10 +27,11 @@ class Ui_MainWindow(object):
                 icon.addPixmap(QtGui.QPixmap('drive icon.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
             else:
                 icon.addPixmap(QtGui.QPixmap('_Close.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
-            self.set_icon(i,icon)
+            self.set_icon(i, icon)
             item.setIcon(icon)
             item.setText(str(self.available_Folders[i]))
             self.listWidget.addItem(item)
+
     def setupUi(self, MainWindow):
         self.address_bar = ''
         self.path = []
@@ -202,8 +207,8 @@ class Ui_MainWindow(object):
         self.actionDelete.triggered.connect(self.delete)
         self.actionDelete_2.triggered.connect(self.delete)
         self.actionExit_2.triggered.connect(self.close)
-        
-        #print(self.path)
+
+        # print(self.path)
 
     def file_or_folder(self, text):
         flag = False
@@ -214,9 +219,10 @@ class Ui_MainWindow(object):
             return 'File'
         else:
             return 'Folder'
-    def dir_list_folder(self,paths):
-         for folderName in os.listdir(paths):
-             if folderName != '$RECYCLE.BIN' and folderName != 'System Volume Information':
+
+    def dir_list_folder(self, paths):
+        for folderName in os.listdir(paths):
+            if folderName != '$RECYCLE.BIN' and folderName != 'System Volume Information':
                 self.available_Folders.append(folderName)
 
     def selecticoncange(self):
@@ -258,8 +264,41 @@ class Ui_MainWindow(object):
         self.change_item_listwidget(self.available_Folders)
         # print(self.available_Folders)
 
+    def selected(self):
+        self.Filename = []
+        for it in self.listWidget.selectedItems():
+            self.Filename.append(it.text())
+
+    def delete(self):
+        self.destiny = '/'.join(self.path)
+        print(self.destiny + '/' + self.Filename[-1])
+        try:
+            os.remove(self.destiny + '/' + self.Filename[-1])
+        except:
+            shutil.rmtree(self.destiny + '/' + self.Filename[-1])
+
+    def add_New_Folder(self):
+        First_Directory = os.getcwd()
+        current_address = '/'.join(self.path)
+        if len(current_address) != 0:
+            os.chdir(current_address)
+        if os.path.isdir(current_address + '/' + 'New Folder') == False:
+            os.mkdir('New Folder')
+            os.chdir(First_Directory)
+        else:
+            th = 1
+            while os.path.isdir(current_address + '/' + 'New Folder' + '(' + str(th) + ')') == True:
+                th += 1
+            os.mkdir('New Folder' + '(' + str(th) + ')')
+            os.chdir(First_Directory)
+
+    def close(self):
+        sys.exit(app.exec_())
+
+
 while True:
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
