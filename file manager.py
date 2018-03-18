@@ -13,8 +13,7 @@ class Ui_MainWindow(object):
                         'fla', 'htm', 'html', 'ini', 'jar', 'jpeg', 'js', 'lasso', 'mdp', 'mov', 'mp4', 'mpg', \
                         'ogg', 'ogv', 'php', 'png', 'ppt', 'py', 'rb', 'real', 'reg', 'rtf', 'sgl', 'swf', 'txt', \
                         'vbs', 'wav', 'webm', 'wmv', 'xls', 'xlsx', 'xml', 'xsl', 'zip', 'rar', 'mkv', 'exe', 'srt',
-                        '3gp', \
-                        'log']
+                        '3gp','log', 'ico']
         for format in self.Formats:
             if self.available_Folders[file].endswith(format):
                 icon.addPixmap(QtGui.QPixmap(format), QtGui.QIcon.Normal, QtGui.QIcon.On)
@@ -62,7 +61,7 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
         self.listWidget.itemDoubleClicked.connect(self.selecticoncange)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.listWidget.itemClicked.connect(self.selected)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 615, 21))
         self.menubar.setObjectName("menubar")
@@ -123,7 +122,7 @@ class Ui_MainWindow(object):
         icon7 = QtGui.QIcon()
         icon7.addPixmap(QtGui.QPixmap("Backward.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionBackward.setIcon(icon7)
-        self.actionBackward.setObjectName("actionPast")
+        self.actionBackward.setObjectName("actionBackward")
         self.actionNew_Folder = QtWidgets.QAction(MainWindow)
         self.actionNew_Folder.setObjectName("actionNew_Folder")
         self.actionCut_3 = QtWidgets.QAction(MainWindow)
@@ -175,7 +174,6 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        # print(self
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -203,12 +201,20 @@ class Ui_MainWindow(object):
         self.actionCopy_3.setText(_translate("MainWindow", "Copy"))
         self.actionCut_4.setText(_translate("MainWindow", "Cut"))
         self.actionPaste.setText(_translate("MainWindow", "Paste"))
+        self.actionNew_Folder.setShortcut('Ctrl+N')
+        self.actionBackward.setShortcut('BackSpace')
+        self.actionExit_2.setShortcut('Ctrl+Q')
+        self.actionDelete.setShortcut('Shift+Delete')
+        self.actionBackward.triggered.connect(self.Backward)
         self.actionNew_Folder.triggered.connect(self.add_New_Folder)
         self.actionDelete.triggered.connect(self.delete)
         self.actionDelete_2.triggered.connect(self.delete)
         self.actionExit_2.triggered.connect(self.close)
 
-        # print(self.path)
+    def dir_list_folder(self, paths):
+        for folderName in os.listdir(paths):
+            if folderName != '$RECYCLE.BIN' and folderName != 'System Volume Information':
+                self.available_Folders.append(folderName)
 
     def file_or_folder(self, text):
         flag = False
@@ -220,10 +226,25 @@ class Ui_MainWindow(object):
         else:
             return 'Folder'
 
-    def dir_list_folder(self, paths):
-        for folderName in os.listdir(paths):
-            if folderName != '$RECYCLE.BIN' and folderName != 'System Volume Information':
-                self.available_Folders.append(folderName)
+    def selected(self):
+        self.Filename = []
+        for it in self.listWidget.selectedItems():
+            self.Filename.append(it.text())
+
+    def delete(self):
+        print(self.Filename)
+        self.destiny = '/'.join(self.path)
+
+        if self.Filename[-1] != '...' and len(self.Filename) != 0:
+            try:
+                os.remove(self.destiny + '/' + self.Filename[-1])
+            except:
+                shutil.rmtree(self.destiny + '/' + self.Filename[-1])
+        if len(self.Filename) != 0:
+            self.available_Folders.remove(str(self.Filename[-1]))
+            self.listWidget.clear()
+            self.change_item_listwidget(self.available_Folders)
+            self.Filename.remove(self.Filename[0])
 
     def selecticoncange(self):
         self.available_Folders.clear()
@@ -264,19 +285,6 @@ class Ui_MainWindow(object):
         self.change_item_listwidget(self.available_Folders)
         # print(self.available_Folders)
 
-    def selected(self):
-        self.Filename = []
-        for it in self.listWidget.selectedItems():
-            self.Filename.append(it.text())
-
-    def delete(self):
-        self.destiny = '/'.join(self.path)
-        print(self.destiny + '/' + self.Filename[-1])
-        try:
-            os.remove(self.destiny + '/' + self.Filename[-1])
-        except:
-            shutil.rmtree(self.destiny + '/' + self.Filename[-1])
-
     def add_New_Folder(self):
         First_Directory = os.getcwd()
         current_address = '/'.join(self.path)
@@ -284,16 +292,39 @@ class Ui_MainWindow(object):
             os.chdir(current_address)
         if os.path.isdir(current_address + '/' + 'New Folder') == False:
             os.mkdir('New Folder')
+
             os.chdir(First_Directory)
+            self.available_Folders.append('New Folder')
         else:
             th = 1
             while os.path.isdir(current_address + '/' + 'New Folder' + '(' + str(th) + ')') == True:
                 th += 1
             os.mkdir('New Folder' + '(' + str(th) + ')')
             os.chdir(First_Directory)
+            self.available_Folders.append('New Folder' + '(' + str(th) + ')')
+        self.listWidget.clear()
+        self.change_item_listwidget(self.available_Folders)
+        # print(First_Directory)
+        # print(self.available_Folders)
+        # print(self.available_Folders)
 
     def close(self):
         sys.exit(app.exec_())
+
+    def Backward(self):
+
+        if len(self.path) > 1:
+            self.available_Folders.clear()
+            self.listWidget.clear()
+            self.available_Folders.append('...')
+            del self.path[-1]
+            self.dir_list_folder('/'.join(self.path))
+            self.change_item_listwidget(self.available_Folders)
+        if len(self.path) == 1:
+            self.listWidget.clear()
+            self.path.clear()
+            self.available_Folders = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
+            self.change_item_listwidget(self.available_Folders)
 
 
 while True:
