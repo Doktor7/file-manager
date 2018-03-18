@@ -313,7 +313,7 @@ class Ui_MainWindow(object):
         sys.exit(app.exec_())
 
     def rename(self):
-        # print('hi')
+        
 
         import tkinter as tk
         from tkinter import simpledialog
