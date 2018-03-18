@@ -205,6 +205,8 @@ class Ui_MainWindow(object):
         self.actionBackward.setShortcut('BackSpace')
         self.actionExit_2.setShortcut('Ctrl+Q')
         self.actionDelete.setShortcut('Shift+Delete')
+        self.actionForward.setShortcut('Tab')
+        self.actionForward.triggered.connect(self.Forward)
         self.actionBackward.triggered.connect(self.Backward)
         self.actionNew_Folder.triggered.connect(self.add_New_Folder)
         self.actionDelete.triggered.connect(self.delete)
@@ -251,7 +253,8 @@ class Ui_MainWindow(object):
         self.available_Folders.clear()
         self.available_Folders.append('...')
         for currentitem in self.listWidget.selectedItems():
-            self.opening_lst.append(currentitem.text())
+            if currentitem.text()!='...' and self.file_or_folder(str(currentitem.text()))=='Folder':
+                self.opening_lst.append(currentitem.text())
             self.path.append(currentitem.text())
             # print(self.path)
             if currentitem.text() == '...' and len(self.path) != 2:
@@ -313,7 +316,6 @@ class Ui_MainWindow(object):
         sys.exit(app.exec_())
 
     def rename(self):
-        
 
         import tkinter as tk
         from tkinter import simpledialog
@@ -331,7 +333,15 @@ class Ui_MainWindow(object):
         self.available_Folders.append(answer)
         self.listWidget.clear()
         self.change_item_listwidget(self.available_Folders)
-
+    def Forward(self):
+        if os.path.isdir(str(self.lineEdit.text())):
+            self.available_Folders.clear()
+            self.available_Folders.append('...')
+            self.listWidget.clear()
+            self.path = self.lineEdit.text().split('\\')
+            self.dir_list_folder(self.lineEdit.text())
+            #print(self.lineEdit.text())
+            self.change_item_listwidget(self.available_Folders)
     def Backward(self):
 
         if len(self.path) > 1:
