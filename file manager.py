@@ -13,11 +13,10 @@ class Ui_MainWindow(object):
                         'fla', 'htm', 'html', 'ini', 'jar', 'jpeg', 'js', 'lasso', 'mdp', 'mov', 'mp4', 'mpg', \
                         'ogg', 'ogv', 'php', 'png', 'ppt', 'py', 'rb', 'real', 'reg', 'rtf', 'sgl', 'swf', 'txt', \
                         'vbs', 'wav', 'webm', 'wmv', 'xls', 'xlsx', 'xml', 'xsl', 'zip', 'rar', 'mkv', 'exe', 'srt',
-                        '3gp','log', 'ico']
+                        '3gp', 'log', 'ico']
         for format in self.Formats:
             if self.available_Folders[file].endswith(format):
                 icon.addPixmap(QtGui.QPixmap(format), QtGui.QIcon.Normal, QtGui.QIcon.On)
-
     def change_item_listwidget(self, list):
         for i in range(len(self.available_Folders)):
             item = QtWidgets.QListWidgetItem()
@@ -30,7 +29,7 @@ class Ui_MainWindow(object):
             item.setIcon(icon)
             item.setText(str(self.available_Folders[i]))
             self.listWidget.addItem(item)
-
+            
     def setupUi(self, MainWindow):
         self.address_bar = ''
         self.path = []
@@ -174,7 +173,6 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
@@ -256,7 +254,7 @@ class Ui_MainWindow(object):
             if currentitem.text()!='...' and self.file_or_folder(str(currentitem.text()))=='Folder':
                 self.opening_lst.append(currentitem.text())
             self.path.append(currentitem.text())
-            # print(self.path)
+
             if currentitem.text() == '...' and len(self.path) != 2:
                 del self.path[-1]
                 del self.path[-1]
@@ -273,7 +271,7 @@ class Ui_MainWindow(object):
                     self.dir_list_folder('/'.join(self.path))
                 if self.file_or_folder(currentitem.text()) == 'File':
                     os.startfile('/'.join(self.path))
-        # print(self.path)
+
         if len(self.path) > 0:
             if self.file_or_folder(self.path[-1]) == 'Folder':
                 self.listWidget.clear()
@@ -283,11 +281,7 @@ class Ui_MainWindow(object):
                 del self.available_Folders[-1]
         if len(self.path) == 0:
             self.lineEdit.setText('')
-
-        # print(self.path)
-        # print(self.available_Folders)
         self.change_item_listwidget(self.available_Folders)
-        # print(self.available_Folders)
 
     def add_New_Folder(self):
         First_Directory = os.getcwd()
@@ -308,9 +302,7 @@ class Ui_MainWindow(object):
             self.available_Folders.append('New Folder' + '(' + str(th) + ')')
         self.listWidget.clear()
         self.change_item_listwidget(self.available_Folders)
-        # print(First_Directory)
-        # print(self.available_Folders)
-        # print(self.available_Folders)
+
 
     def close(self):
         sys.exit(app.exec_())
@@ -328,11 +320,11 @@ class Ui_MainWindow(object):
             os.chdir(current)
         if answer is not None:
             os.rename(self.Filename[-1], answer)
-        os.chdir(First)
-        self.available_Folders.remove(str(self.Filename[-1]))
-        self.available_Folders.append(answer)
-        self.listWidget.clear()
-        self.change_item_listwidget(self.available_Folders)
+            os.chdir(First)
+            self.available_Folders.remove(str(self.Filename[-1]))
+            self.available_Folders.append(answer)
+            self.listWidget.clear()
+            self.change_item_listwidget(self.available_Folders)
     def Forward(self):
         if os.path.isdir(str(self.lineEdit.text())):
             self.available_Folders.clear()
@@ -340,8 +332,17 @@ class Ui_MainWindow(object):
             self.listWidget.clear()
             self.path = self.lineEdit.text().split('\\')
             self.dir_list_folder(self.lineEdit.text())
-            #print(self.lineEdit.text())
+            # print(self.lineEdit.text())
             self.change_item_listwidget(self.available_Folders)
+        else:
+            messagebox = QtWidgets.QMessageBox(MainWindow)
+            messagebox.setWindowTitle('warning')
+            messagebox.setText(
+                "windows can't find '" + str(self.lineEdit.text()) + "' check the spelling and try again")
+            messagebox.setStandardButtons(QMessageBox.Ok)
+            messagebox.setIcon(QMessageBox.Warning)
+            messagebox.show()
+
     def Backward(self):
 
         if len(self.path) > 1:
@@ -357,10 +358,26 @@ class Ui_MainWindow(object):
             self.available_Folders = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
             self.change_item_listwidget(self.available_Folders)
 
+    def Edit(self):
+        os.startfile(shutil.which('Notepad'))
+
+    def Copy(self):
+        for format in self.Formats:
+            if self.Filename[-1].endswith(format):
+                print(format)
+        if len(self.path) > 0 and self.Filename[-1] != '...':
+            self.File_name_Copy.append('\\'.join(self.path))
+            self.File_name_Copy.append(self.Filename[-1])
+            self.File_Copy = str('\\'.join(self.path)) + '\\' + str(self.Filename[-1])
+
+    def Cut(self):
+        if len(self.path) > 0 and self.Filename[-1] != '...':
+            self.File_name_Cut.append('\\'.join(self.path))
+            self.File_name_Cut.append(self.Filename[-1])
+            self.File_Cut = str('\\'.join(self.path)) + '\\' + str(self.Filename[-1])
 
 while True:
     import sys
-
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
