@@ -8,7 +8,10 @@ class Ui_MainWindow(object):
         self.available_Folders = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
         self.available_Drives = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
         self.available_Drives2 = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
-
+        self.File_Cut = ''
+        self.File_Copy = ''
+        self.File_name_Cut = []
+        self.File_name_Copy =[]
     def set_icon(self, file, icon):
         self.Formats = ['pdf', 'mp3', 'jpg', 'aac', 'avi', 'bmp', 'chm', 'css', 'defult', 'dll', 'doc', 'docx', \
                         'fla', 'htm', 'html', 'ini', 'jar', 'jpeg', 'js', 'lasso', 'mdp', 'mov', 'mp4', 'mpg', \
@@ -30,7 +33,7 @@ class Ui_MainWindow(object):
             item.setIcon(icon)
             item.setText(str(self.available_Folders[i]))
             self.listWidget.addItem(item)
-            
+
     def setupUi(self, MainWindow):
         self.address_bar = ''
         self.path = []
@@ -399,6 +402,37 @@ class Ui_MainWindow(object):
                     self.available_Folders.append(self.File_name_Copy[-1])
                 except:
                     shutil.copy(self.File_Copy , self.paste+str(self.File_name_Copy[-1]))
+                    self.available_Folders.append(self.File_name_Copy[-1])
+            if self.paste == self.File_name_Copy[0]:
+                try:
+                    shutil.copytree(self.File_Copy, self.paste+str(self.File_name_Copy[-1])+' - COPY')
+                    self.available_Folders.append(self.File_name_Copy[-1]+' - COPY')
+                except:
+                    shutil.copy(self.File_Copy , self.paste+str(self.File_name_Copy[-1])+' - COPY')
+                    self.available_Folders.append(self.File_name_Copy[-1]+' - COPY')
+            self.listWidget.clear()
+            self.change_item_listwidget(self.available_Folders)
+            self.File_name_Copy.clear()
+        if len(self.File_name_Cut)!=0:
+            if self.paste != self.File_name_Cut[0]:
+                try:
+                    shutil.copytree(self.File_Cut, self.paste+str(self.File_name_Cut[-1]))
+                    self.available_Folders.append(self.File_name_Cut[-1])
+                except:
+                    shutil.copy(self.File_Cut , self.paste+str(self.File_name_Cut[-1]))
+                    self.available_Folders.append(self.File_name_Cut[-1])
+            else:
+                pass
+            try:
+                os.remove(str(self.File_Cut))
+            except:
+                shutil.rmtree(str(self.File_Cut))
+
+            self.listWidget.clear()
+            self.change_item_listwidget(self.available_Folders)
+            self.File_name_Cut.clear()
+
+
 while True:
     import sys
     app = QtWidgets.QApplication(sys.argv)
