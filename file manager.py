@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import os, string, shutil
+from PyQt5.QtWidgets import *
 
 
 class Ui_MainWindow(object):
@@ -204,6 +205,10 @@ class Ui_MainWindow(object):
         self.actionExit_2.setShortcut('Ctrl+Q')
         self.actionDelete.setShortcut('Shift+Delete')
         self.actionForward.setShortcut('Tab')
+        self.actionEdit_2.setShortcut('Ctrl+E')
+        self.actionCopy.setShortcut('Ctrl+C')
+        self.actionPaste.setShortcut('Ctrl+V')
+        self.actionCut_3.setShortcut('Ctrl+X')
         self.actionForward.triggered.connect(self.Forward)
         self.actionBackward.triggered.connect(self.Backward)
         self.actionNew_Folder.triggered.connect(self.add_New_Folder)
@@ -211,7 +216,16 @@ class Ui_MainWindow(object):
         self.actionDelete_2.triggered.connect(self.delete)
         self.actionExit_2.triggered.connect(self.close)
         self.actionRename_2.triggered.connect(self.rename)
-
+        self.actionEdit.triggered.connect(self.Edit)
+        self.actionEdit_2.triggered.connect(self.Edit)
+        self.actionCopy.triggered.connect(self.Copy)
+        self.actionCopy_3.triggered.connect(self.Copy)
+        self.actionCopy_2.triggered.connect(self.Copy)
+        self.actionPaste.triggered.connect(self.Paste)
+        self.actionPaste_2.triggered.connect(self.Paste)
+        self.actionCut.triggered.connect(self.Cut)
+        self.actionCut_3.triggered.connect(self.Cut)
+        self.actionCut_4.triggered.connect(self.Cut)
     def dir_list_folder(self, paths):
         for folderName in os.listdir(paths):
             if folderName != '$RECYCLE.BIN' and folderName != 'System Volume Information':
@@ -337,8 +351,7 @@ class Ui_MainWindow(object):
         else:
             messagebox = QtWidgets.QMessageBox(MainWindow)
             messagebox.setWindowTitle('warning')
-            messagebox.setText(
-                "windows can't find '" + str(self.lineEdit.text()) + "' check the spelling and try again")
+            messagebox.setText("windows can't find '"+str(self.lineEdit.text())+"' check the spelling and try again")
             messagebox.setStandardButtons(QMessageBox.Ok)
             messagebox.setIcon(QMessageBox.Warning)
             messagebox.show()
@@ -376,6 +389,16 @@ class Ui_MainWindow(object):
             self.File_name_Cut.append(self.Filename[-1])
             self.File_Cut = str('\\'.join(self.path)) + '\\' + str(self.Filename[-1])
 
+    def Paste(self):
+
+        self.paste = '\\'.join(self.path)
+        if len(self.File_name_Copy)!=0:
+            if self.paste != self.File_name_Copy[0]:
+                try:
+                    shutil.copytree(self.File_Copy, self.paste+str(self.File_name_Copy[-1]))
+                    self.available_Folders.append(self.File_name_Copy[-1])
+                except:
+                    shutil.copy(self.File_Copy , self.paste+str(self.File_name_Copy[-1]))
 while True:
     import sys
     app = QtWidgets.QApplication(sys.argv)
