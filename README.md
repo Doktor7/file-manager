@@ -1,8 +1,8 @@
 # file-manager
 contributers: <br />
-alireza safi , amir rezaei , seyed amir hashemi <br />
+**alireza safi , amir rezaei , seyed amir hashemi**<br />
 modules used : <br />
-PyQt5 , os , string, shutil <br />
+**PyQt5 , os , string, shutil**<br />
 features : <br />
 **backward with (...) button** <br />
 **cut and copy** <br />
