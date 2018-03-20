@@ -174,6 +174,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionCopy_2)
         self.toolBar.addAction(self.actionForward)
         self.toolBar.addAction(self.actionBackward)
+        self.listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
@@ -250,19 +251,23 @@ class Ui_MainWindow(object):
             self.Filename.append(it.text())
 
     def delete(self):
-        print(self.Filename)
-        self.destiny = '/'.join(self.path)
+        if len(self.path)>0 and len(self.Filename)>0:
+            self.destiny = '/'.join(self.path)
 
-        if self.Filename[-1] != '...' and len(self.Filename) != 0:
-            try:
-                os.remove(self.destiny + '/' + self.Filename[-1])
-            except:
-                shutil.rmtree(self.destiny + '/' + self.Filename[-1])
-        if len(self.Filename) != 0:
-            self.available_Folders.remove(str(self.Filename[-1]))
-            self.listWidget.clear()
-            self.change_item_listwidget(self.available_Folders)
-            self.Filename.remove(self.Filename[0])
+            if self.Filename[-1] != '...' and len(self.Filename) != 0:
+                try:
+                    os.remove(self.destiny + '/' + self.Filename[-1])
+                except:
+                    shutil.rmtree(self.destiny + '/' + self.Filename[-1])
+                print(self.Filename)
+                if len(self.Filename) != 0:
+                    try:
+                        self.available_Folders.remove(str(self.Filename[-1]))
+                        self.listWidget.clear()
+                        self.change_item_listwidget(self.available_Folders)
+                        self.Filename.remove(self.Filename[0])
+                    except:
+                        pass
 
     def selecticoncange(self):
         self.available_Folders.clear()
@@ -276,7 +281,6 @@ class Ui_MainWindow(object):
                 del self.path[-1]
                 del self.path[-1]
             if currentitem.text() == '...' and len(self.path) == 2:
-                # print('kir')
                 self.listWidget.clear()
                 self.path.clear()
                 self.available_Folders = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
@@ -299,7 +303,7 @@ class Ui_MainWindow(object):
         if len(self.path) == 0:
             self.lineEdit.setText('')
         self.change_item_listwidget(self.available_Folders)
-
+        self.Filename=[]
     def add_New_Folder(self):
         First_Directory = os.getcwd()
         current_address = '/'.join(self.path)
@@ -360,7 +364,7 @@ class Ui_MainWindow(object):
             messagebox.show()
 
     def Backward(self):
-
+        self.Filename =[]
         if len(self.path) > 1:
             self.available_Folders.clear()
             self.listWidget.clear()
