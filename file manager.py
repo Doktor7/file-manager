@@ -1,7 +1,15 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import os, string, shutil
 from PyQt5.QtWidgets import *
+class App(QWidget):
 
+    def __init__(self):
+        super().__init__()
+        self.left = 350
+        self.top = 140
+        self.width = 640
+        self.height = 480
+        self.setGeometry(self.left, self.top, self.width, self.height)
 
 class Ui_MainWindow(object):
     def __init__(self):
@@ -213,6 +221,7 @@ class Ui_MainWindow(object):
         self.actionCopy.setShortcut('Ctrl+C')
         self.actionPaste.setShortcut('Ctrl+V')
         self.actionCut_3.setShortcut('Ctrl+X')
+        self.actionRename_2.setShortcut('Ctrl+R')
         self.actionForward.triggered.connect(self.Forward)
         self.actionBackward.triggered.connect(self.Backward)
         self.actionNew_Folder.triggered.connect(self.add_New_Folder)
@@ -259,7 +268,6 @@ class Ui_MainWindow(object):
                     os.remove(self.destiny + '/' + self.Filename[-1])
                 except:
                     shutil.rmtree(self.destiny + '/' + self.Filename[-1])
-                print(self.Filename)
                 if len(self.Filename) != 0:
                     try:
                         self.available_Folders.remove(str(self.Filename[-1]))
@@ -329,23 +337,21 @@ class Ui_MainWindow(object):
         sys.exit(app.exec_())
 
     def rename(self):
+        if len(self.path)>0 and len(self.Filename)>0:
+            self.w = App()
+            text, okPressed = QInputDialog.getText(self.w, "Rename", "Enetr New Name:", QLineEdit.Normal, "")
+            if okPressed and text != '':
+                First = os.getcwd()
 
-        import tkinter as tk
-        from tkinter import simpledialog
-        window = tk.Tk()
-        answer = simpledialog.askstring('rename', 'Enter New Name:', parent=window)
-        First = os.getcwd()
-
-        current = '/'.join(self.path)
-        if len(current) != 0:
-            os.chdir(current)
-        if answer is not None:
-            os.rename(self.Filename[-1], answer)
-            os.chdir(First)
-            self.available_Folders.remove(str(self.Filename[-1]))
-            self.available_Folders.append(answer)
-            self.listWidget.clear()
-            self.change_item_listwidget(self.available_Folders)
+                current = '/'.join(self.path)
+                if len(current) != 0:
+                    os.chdir(current)
+                os.rename(self.Filename[-1], text)
+                os.chdir(First)
+                self.available_Folders.remove(str(self.Filename[-1]))
+                self.available_Folders.append(text)
+                self.listWidget.clear()
+                self.change_item_listwidget(self.available_Folders)
     def Forward(self):
         if os.path.isdir(str(self.lineEdit.text())):
             self.available_Folders.clear()
@@ -365,18 +371,19 @@ class Ui_MainWindow(object):
 
     def Backward(self):
         self.Filename =[]
-        if len(self.path) > 1:
-            self.available_Folders.clear()
-            self.listWidget.clear()
-            self.available_Folders.append('...')
-            del self.path[-1]
-            self.dir_list_folder('/'.join(self.path))
-            self.change_item_listwidget(self.available_Folders)
         if len(self.path) == 1:
             self.listWidget.clear()
             self.path.clear()
             self.available_Folders = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
             self.change_item_listwidget(self.available_Folders)
+        if len(self.path) > 1:
+            self.available_Folders.clear()
+            self.listWidget.clear()
+            self.available_Folders.append('...')
+            del self.path[-1]
+            self.dir_list_folder('\\'.join(self.path))
+            self.change_item_listwidget(self.available_Folders)
+        self.lineEdit.setText(str('\\'.join(self.path)))
 
     def Edit(self):
         os.startfile(shutil.which('Notepad'))
@@ -391,7 +398,7 @@ class Ui_MainWindow(object):
             self.File_Copy = str('\\'.join(self.path)) + '\\' + str(self.Filename[-1])
 
     def Cut(self):
-        if len(self.path) > 0 and self.Filename[-1] != '...':
+        if len(self.path) > 0 and self.Filename[-1] != '...' and len(self.Filename)>0:
             self.File_name_Cut.append('\\'.join(self.path))
             self.File_name_Cut.append(self.Filename[-1])
             self.File_Cut = str('\\'.join(self.path)) + '\\' + str(self.Filename[-1])
