@@ -289,6 +289,7 @@ class Ui_MainWindow(object):
         for it in self.listWidget.selectedItems():
             self.Filename.append(it.text())
 
+
     def delete(self):
         if self.accessed_device == False and len(self.path)>1 and len(self.Filename)>0:
             self.question = App()
@@ -412,6 +413,7 @@ class Ui_MainWindow(object):
             self.newFolder_Message(self.NewFolder_Message)
 
 
+
     def close(self):
         import sys
         sys.exit(app.exec_())
@@ -486,3 +488,167 @@ class Ui_MainWindow(object):
             self.File_name_Cut.append('\\'.join(self.path[1:]))
             self.File_name_Cut.append(self.Filename[-1])
             self.File_Cut = str('\\'.join(self.path[1:])) + '\\' + str(self.Filename[-1])
+    def Paste(self):
+        self.paste = '\\'.join(self.path[1:])
+        if self.accessed_device == False:
+            if len(self.File_name_Copy)!=0:
+                if self.paste != self.File_name_Copy[0]:
+                    try:
+                        shutil.copytree(self.File_Copy, self.paste+'\\'+str(self.File_name_Copy[-1]))
+                        self.available_Folders.append(self.File_name_Copy[-1])
+                    except:
+                        shutil.copy(self.File_Copy , self.paste+'\\'+str(self.File_name_Copy[-1]))
+                        self.available_Folders.append(self.File_name_Copy[-1])
+                else:
+                    print('kir')
+                    if self.file_or_folder(self.File_name_Copy[-1]) == 'Folder':
+                        th = 1
+                        while os.path.isdir(self.paste + '\\' + self.File_name_Copy[-1] + '(' + str(th) + ')') == True:
+                            th += 1
+                        try:
+                            shutil.copytree(self.File_Copy, self.paste+'\\'+str(self.File_name_Copy[-1])+'('+str(th)+')')
+                            self.available_Folders.append(self.File_name_Copy[-1]+'('+str(th)+')')
+                        except:
+                            pass
+                    if self.file_or_folder(self.File_name_Copy[-1]) == 'File':
+                        for format in self.Formats:
+                            if self.File_name_Copy[-1].endswith(format):
+                                try:
+                                    th = 1
+                                    self.File_name_Copy[-1] = self.File_name_Copy[-1].replace(format,'')
+                                    print(self.File_name_Copy[-1])
+                                    shutil.copy(self.File_Copy , self.paste+'\\'+str(self.File_name_Copy[-1])+'('+str(th)+')'+format)
+                                    self.available_Folders.append(self.File_name_Copy[-1]+'('+str(th)+')'+format)
+                                    th += 1
+                                except:
+                                    pass
+                self.listWidget.clear()
+                self.change_item_listwidget(self.available_Folders)
+                self.File_name_Copy.clear()
+            if len(self.File_name_Cut)!=0:
+                if self.File_name_Cut[-1] not in os.listdir(self.paste):
+                    try:
+                        shutil.copytree(self.File_Cut, self.paste+'\\'+str(self.File_name_Cut[-1]))
+                        self.available_Folders.append(self.File_name_Cut[-1])
+                    except:
+                        shutil.copy(self.File_Cut , self.paste+'\\'+str(self.File_name_Cut[-1]))
+                        self.available_Folders.append(self.File_name_Cut[-1])
+                else:
+                    pass
+                try:
+                    os.remove(str(self.File_Cut))
+                except:
+                    shutil.rmtree(str(self.File_Cut))
+
+                self.listWidget.clear()
+                self.change_item_listwidget(self.available_Folders)
+                self.File_name_Cut.clear()
+        if self.accessed_device == True:
+            if len(self.path)>1:
+                self.cut_message.append(self.File_Cut)
+                self.cut_message.append(self.paste+'\\'+str(self.File_name_Cut[-1]))
+                self.cut_message.insert(0,self.path[0])
+                if len(self.path[1:]) == 1:
+                    self.cut_message.append(''.join(self.path[1:])+'\\')
+                else:
+                    self.cut_message.append('\\'.join(self.path[1:]))
+                self.Cut_message(self.cut_message)
+    def request_message(self,dir):
+        dir.append('request')
+        dir.insert(1,self.sockName)
+        self.sock.send(pickle.dumps(dir))
+        dir.remove('request')
+        dir.remove(self.sockName)
+    def Delete_message(self,list):
+        list.append('Delete')
+        list.insert(1, self.sockName)
+        self.sock.send(pickle.dumps(list))
+        list.remove('Delete')
+        list.remove(self.sockName)
+    def Delete_for_otherDevice(self,recieve):
+        try:
+            os.remove('\\'.join(recieve[2:-1]))
+        except:
+            shutil.rmtree('\\'.join(recieve[2:-1]))
+        First = os.getcwd()
+        os.chdir('C:\\')
+        tobesend = os.listdir('\\'.join(recieve[2:-2]))
+        tobesend.append('order')
+        tobesend.insert(0, recieve[1])
+        tobesend.insert(1, recieve[0])
+        self.sock.send(pickle.dumps(tobesend))
+        os.chdir(First)
+    def send_directory(self,recieve):
+
+        if len(recieve) == 3:
+                tobesend = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
+                tobesend.append('order')
+                tobesend.insert(0, recieve[1])
+                tobesend.insert(1, recieve[0])
+                self.sock.send(pickle.dumps(tobesend))
+                tobesend.clear()
+        if len(recieve) > 3:
+            First = os.getcwd()
+            os.chdir('C:\\')
+            tobesend = os.listdir('\\'.join(recieve[2:-1]))
+            tobesend.append('order')
+            tobesend.insert(0, recieve[1])
+            tobesend.insert(1, recieve[0])
+            self.sock.send(pickle.dumps(tobesend))
+            os.chdir(First)
+    def recieve_directory(self,recieve):
+        self.listWidget.clear()
+        self.available_Folders = recieve[2:-1]
+        self.available_Folders.insert(0, '...')
+        if '$RECYCLE.BIN' in self.available_Folders:
+            self.available_Folders.remove('$RECYCLE.BIN')
+        if 'System Volume Information' in self.available_Folders:
+            self.available_Folders.remove('System Volume Information')
+        self.change_item_listwidget(self.available_Folders)
+        self.lineEdit.setText('\\'.join(self.path))
+    def Cut_message(self,list):
+        list.append('cut')
+        list.insert(1,self.sockName)
+        self.sock.send(pickle.dumps(list))
+        list.clear()
+    def cut_for_otherDevice(self,recieve):
+        try:
+            shutil.copytree(recieve[2], recieve[3])
+        except:
+            shutil.copy(recieve[2], recieve[3])
+        try:
+            os.remove(recieve[2])
+        except:
+            shutil.rmtree(recieve[2])
+        tobesend = os.listdir(recieve[4])
+        tobesend.append('order')
+        tobesend.insert(0, recieve[1])
+        tobesend.insert(1, recieve[0])
+        self.sock.send(pickle.dumps(tobesend))
+    def newFolder_Message(self,list):
+        list.append('NewFolder')
+        list.insert(1,self.sockName)
+        self.sock.send(pickle.dumps(list))
+        list.clear()
+    def NewFolder_for_otherDevice(self,recieve):
+        if os.path.isdir(recieve[-2] + '\\' + 'New Folder') == False:
+            os.mkdir(recieve[-2] + '\\' + 'New Folder')
+        else:
+            th = 1
+            while os.path.isdir(recieve[-2] + '\\' + 'New Folder' + '(' + str(th) + ')') == True:
+                th += 1
+            os.mkdir(recieve[-2] + '\\' + 'New Folder' + '(' + str(th) + ')')
+        First = os.getcwd()
+        os.chdir('C:\\')
+        tobesend = os.listdir(recieve[2])
+        tobesend.append('order')
+        tobesend.insert(0, recieve[1])
+        tobesend.insert(1, recieve[0])
+        self.sock.send(pickle.dumps(tobesend))
+        os.chdir(First)
+    def Download(self):
+        if self.accessed_device == True:
+            if self.file_or_folder(self.Filename[-1]) == 'File':
+                self.download_message(self.Filename[-1],self.path)
+            elif self.file_or_folder(self.Filename[-1]) == 'Folder':
+                self.download_Folder(self.Filename[-1],self.path)
