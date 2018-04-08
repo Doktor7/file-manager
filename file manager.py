@@ -20,6 +20,7 @@ class Ui_MainWindow(object):
         self.send_message = []
         self.cut_message = []
         self.NewFolder_Message = []
+        self.rename_message = []
         self.sockName = ''
         self.connected_name = ''
         self.accessed_device = False
@@ -43,7 +44,13 @@ class Ui_MainWindow(object):
         for i in range(len(self.available_Folders)):
             item = QtWidgets.QListWidgetItem()
             icon = QtGui.QIcon()
-            if str(self.available_Folders[i]).find(':') != -1:
+            if 'client'in str(self.available_Folders[i]):
+                icon.addPixmap(QtGui.QPixmap('client.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
+            elif 'server' in str(self.available_Folders[i]):
+                icon.addPixmap(QtGui.QPixmap('server.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
+            elif 'This PC' in str(self.available_Folders[i]):
+                icon.addPixmap(QtGui.QPixmap('This PC.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
+            elif str(self.available_Folders[i]).find(':') != -1:
                 icon.addPixmap(QtGui.QPixmap('drive icon.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
             else:
                 icon.addPixmap(QtGui.QPixmap('_Close.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
@@ -320,6 +327,7 @@ class Ui_MainWindow(object):
                 self.path.append(self.Filename[-1])
                 self.Delete_message(self.path)
                 self.path.remove(self.Filename[-1])
+
     def selecticoncange(self):
         self.available_Folders.clear()
         self.available_Folders.append('...')
@@ -435,6 +443,18 @@ class Ui_MainWindow(object):
                     self.available_Folders.append(text)
                     self.listWidget.clear()
                     self.change_item_listwidget(self.available_Folders)
+        else:
+            if len(self.path)>1 and len(self.Filename)>0:
+                self.w = App()
+                text, okPressed = QInputDialog.getText(self.w, "Rename", "Enetr New Name:", QLineEdit.Normal, "")
+                if okPressed and text != '':
+                    self.rename_message.append(text)
+                    self.rename_message.append('rename')
+                    self.rename_message.insert(0,self.connected_name)
+                    self.rename_message.insert(1,self.sockName)
+                    self.rename_message.insert(2,'\\'.join(self.path[1:]))
+                    self.rename_message.insert(3,self.Filename[-1])
+                    self.sock.send(pickle.dumps(self.rename_message))
     def Forward(self):
         if self.accessed_device == False:
             if os.path.isdir(str(self.lineEdit.text())):
@@ -500,7 +520,6 @@ class Ui_MainWindow(object):
                         shutil.copy(self.File_Copy , self.paste+'\\'+str(self.File_name_Copy[-1]))
                         self.available_Folders.append(self.File_name_Copy[-1])
                 else:
-                    print('kir')
                     if self.file_or_folder(self.File_name_Copy[-1]) == 'Folder':
                         th = 1
                         while os.path.isdir(self.paste + '\\' + self.File_name_Copy[-1] + '(' + str(th) + ')') == True:
@@ -652,3 +671,52 @@ class Ui_MainWindow(object):
                 self.download_message(self.Filename[-1],self.path)
             elif self.file_or_folder(self.Filename[-1]) == 'Folder':
                 self.download_Folder(self.Filename[-1],self.path)
+
+    def download_Folder(self,name,path):
+        try:
+            os.makedirs(self.download_place +'\\'+ name)
+        except:
+            pass
+        if len(os.listdir('\\'.join(path[1:])+'\\'+name))>0:
+            for i in os.listdir('\\'.join(path[1:])+'\\'+name):
+                if self.file_or_folder(i) == 'Folder':
+                    name = name+'\\'+i
+                    self.download_Folder(name,path)
+                    name = name.replace('\\'+i,'')
+                else:
+                    name = name + '\\' + i
+                    self.download_message(name,path)
+                    name = name.replace('\\' + i, '')
+
+    def download_message(self,name,path):
+        self.Download_Message = []
+        self.Download_Message.append('\\'.join(path[1:])+'\\'+name)
+        self.Download_Message.append('Download_Message')
+        self.Download_Message.insert(0,self.path[0])
+        self.Download_Message.insert(1,self.sockName)
+        self.file = open(self.download_place+'\\'+name,'wb')
+        self.sock.send(pickle.dumps(self.Download_Message))
+
+    def send(self):
+        if self.accessed_device == False and len(self.Filename)>0 and self.file_or_folder(self.Filename[-1])=='File':
+            self.send_message = []
+            self.send_message.append(self.Filename[-1])
+            self.send_message.append('send')
+            self.send_message.insert(0,self.connected_name)
+            self.send_message.insert(1,self.sockName)
+            self.sock.send(pickle.dumps(self.send_message))
+            file = open('\\'.join(self.path[1:])+'\\'+self.Filename[-1], 'rb')
+            read = file.read()
+            while True:
+                self.sock.send(read)
+                read = file.read()
+                if not read:
+                    break
+            file.close()
+    def chat(self):
+        if self.lineEdit2.text()!= '':
+            itm = QtWidgets.QListWidgetItem()
+            itm.setText(self.sockName+' :: '+self.lineEdit2.text())
+            self.chatroom.addItem(itm)
+            self.sock.send(pickle.dumps([self.connected_name,self.sockName,self.lineEdit2.text(),'chat']))
+            self.lineEdit2.clear()
