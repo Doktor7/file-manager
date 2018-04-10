@@ -1,6 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import os, string, shutil
 from PyQt5.QtWidgets import *
+from PyQt5.QtCore import Qt
 import pickle,socket,threading
 class App(QWidget):
 
@@ -11,9 +12,9 @@ class App(QWidget):
         self.width = 640
         self.height = 480
         self.setGeometry(self.left, self.top, self.width, self.height)
-
-class Ui_MainWindow(object):
+class Ui_MainWindow(QMainWindow,object):
     def __init__(self,sock):
+        QMainWindow.__init__(self)
         self.download_place = '\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Downloads'
         self.file = None
         self.Download_Message = []
@@ -44,7 +45,13 @@ class Ui_MainWindow(object):
         for i in range(len(self.available_Folders)):
             item = QtWidgets.QListWidgetItem()
             icon = QtGui.QIcon()
-            if str(self.available_Folders[i]).find(':') != -1:
+            if 'client'in str(self.available_Folders[i]):
+                icon.addPixmap(QtGui.QPixmap('client.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
+            elif 'server' in str(self.available_Folders[i]):
+                icon.addPixmap(QtGui.QPixmap('server.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
+            elif 'This PC' in str(self.available_Folders[i]):
+                icon.addPixmap(QtGui.QPixmap('This PC.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
+            elif str(self.available_Folders[i]).find(':') != -1:
                 icon.addPixmap(QtGui.QPixmap('drive icon.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
             else:
                 icon.addPixmap(QtGui.QPixmap('_Close.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
@@ -58,21 +65,26 @@ class Ui_MainWindow(object):
         self.path = []
         self.opening_lst = []
         self.path2 = []
-        MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1000, 600)
+        MainWindow.setObjectName("File Manager")
+        MainWindow.resize(1350, 695)
+        # MainWindow.setStyleSheet("background-image: url(taylor.jpg);")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 500, 540))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 670, 620))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
         self.listWidget = QtWidgets.QListWidget(self.gridLayoutWidget)
+        self.listWidget.setIconSize(QtCore.QSize(40, 40))
+        self.listWidget.setWordWrap(False)
         self.listWidget.setObjectName("ListWidget")
+        # self.listWidget.setStyleSheet("background-image: url(taylor.jpg);")
         self.chatroom = QtWidgets.QListWidget(self.centralwidget)
         self.chatroom.setObjectName("chat")
-        self.chatroom.setGeometry(QtCore.QRect(500,0,500 , 600))
+        self.chatroom.setStyleSheet("background-image: url(chat.png);")
+        self.chatroom.setGeometry(QtCore.QRect(680,0,670 , 400))
         self.available_Folders = self.available_Device[:]
         self.change_item_listwidget(self.available_Folders)
         self.gridLayout.addWidget(self.listWidget, 1, 0, 1, 1)
@@ -81,7 +93,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.lineEdit, 0, 0, 1, 1)
         self.lineEdit2 = QtWidgets.QLineEdit(self.gridLayoutWidget)
         self.lineEdit2.setObjectName("lineEdit2")
-        self.gridLayout.addWidget(self.lineEdit2, 600, 0, 1, 1)
+        self.gridLayout.addWidget(self.lineEdit2, 680, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 600, 20))
@@ -99,6 +111,8 @@ class Ui_MainWindow(object):
         MainWindow.setMenuBar(self.menubar)
         self.toolBar = QtWidgets.QToolBar(MainWindow)
         self.toolBar.setToolButtonStyle(QtCore.Qt.ToolButtonIconOnly)
+        self.toolBar.setMinimumSize(QtCore.QSize(0, 0))
+        self.toolBar.setIconSize(QtCore.QSize(40, 40))
         self.toolBar.setObjectName("toolBar")
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
         self.actionEdit = QtWidgets.QAction(MainWindow)
@@ -322,6 +336,293 @@ class Ui_MainWindow(object):
                 self.Delete_message(self.path)
                 self.path.remove(self.Filename[-1])
 
+    def selecticoncange(self):
+        self.available_Folders.clear()
+        self.available_Folders.append('...')
+        for currentitem in self.listWidget.selectedItems():
+            self.path.append(currentitem.text())
+            self.opening_lst.append(currentitem.text())
+            if currentitem.text()!='This PC' and len(self.path)==1:
+                self.accessed_device = True
+            if currentitem.text() =='This PC' and len(self.path)==1:
+                self.accessed_device = False
+            if self.accessed_device == False:
+                if currentitem.text() == '...' and len(self.path) == 2:
+                    self.path.clear()
+                    self.available_Folders = self.available_Device[:]
+                elif currentitem.text() == '...' and len(self.path) == 3:
+                    self.listWidget.clear()
+                    del self.path[-1]
+                    del self.path[-1]
+                elif currentitem.text() == '...' and len(self.path) > 3:
+                    del self.path[-1]
+                    del self.path[-1]
+
+                if len(self.path) == 1:
+                    self.available_Folders = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
+                    self.available_Folders.insert(0,'...')
+                elif len(self.path) == 2:
+                    self.dir_list_folder(self.path[1] + '\\')
+                elif len(self.path) > 2:
+                    if self.file_or_folder(currentitem.text()) == 'Folder':
+                        self.dir_list_folder('\\'.join(self.path[1:]))
+                    if self.file_or_folder(currentitem.text()) == 'File':
+                        os.startfile('\\'.join(self.path[1:]))
+            if self.accessed_device == True:
+                if self.file_or_folder(currentitem.text()) == 'File':
+                    self.path.remove(currentitem.text())
+                if currentitem.text() == '...' and len(self.path) > 2:
+                    del self.path[-1]
+                    del self.path[-1]
+                    self.request_message(self.path)
+                elif currentitem.text() == '...' and len(self.path) == 2:
+                    self.path.clear()
+                    self.listWidget.clear()
+                    self.available_Folders = self.available_Device[:]
+                    self.change_item_listwidget(self.available_Folders)
+                    self.lineEdit.setText('')
+
+                else:
+                    if self.file_or_folder(currentitem.text()) == 'Folder':
+                        self.request_message(self.path)
+
+            # if self.accessed_device == True:
+        if self.accessed_device == False:
+            if len(self.path) > 0:
+                if self.file_or_folder(self.path[-1]) == 'Folder':
+                    self.listWidget.clear()
+                    self.lineEdit.setText(str('\\'.join(self.path)))
+                if self.file_or_folder(self.path[-1]) == 'File':
+                    del self.path[-1]
+                    del self.available_Folders[-1]
+            elif len(self.path) == 0 and len(self.path2) == 0:
+                self.listWidget.clear()
+                self.lineEdit.setText('')
+            self.change_item_listwidget(self.available_Folders)
+
+
+        self.Filename=[]
+    def add_New_Folder(self):
+        if self.accessed_device == False:
+            if len(self.path)>1:
+                First_Directory = os.getcwd()
+                current_address = '\\'.join(self.path[1:])
+                if len(current_address) != 0:
+                    os.chdir(current_address)
+                if os.path.isdir(current_address + '\\' + 'New Folder') == False:
+                    os.mkdir('New Folder')
+                    os.chdir(First_Directory)
+                    self.available_Folders.append('New Folder')
+                else:
+                    th = 1
+                    while os.path.isdir(current_address + '\\' + 'New Folder' + '(' + str(th) + ')') == True:
+                        th += 1
+                    os.mkdir('New Folder' + '(' + str(th) + ')')
+                    os.chdir(First_Directory)
+                    self.available_Folders.append('New Folder' + '(' + str(th) + ')')
+                self.listWidget.clear()
+                self.change_item_listwidget(self.available_Folders)
+        if self.accessed_device == True and len(self.path)>1:
+            current_address = '\\'.join(self.path[1:])
+            self.NewFolder_Message.append(current_address)
+            self.NewFolder_Message.insert(0,self.path[0])
+            self.newFolder_Message(self.NewFolder_Message)
+
+
+
+    def close(self):
+        import sys
+        sys.exit(app.exec_())
+
+    def rename(self):
+        if self.accessed_device == False:
+            if len(self.path)>1 and len(self.Filename)>0:
+                self.w = App()
+                text, okPressed = QInputDialog.getText(self.w, "Rename", "Enetr New Name:", QLineEdit.Normal, "")
+                if okPressed and text != '':
+                    First = os.getcwd()
+
+                    current = '\\'.join(self.path[1:])
+                    if len(current) != 0:
+                        os.chdir(current)
+                    os.rename(self.Filename[-1], text)
+                    os.chdir(First)
+                    self.available_Folders.remove(str(self.Filename[-1]))
+                    self.available_Folders.append(text)
+                    self.listWidget.clear()
+                    self.change_item_listwidget(self.available_Folders)
+        else:
+            if len(self.path)>1 and len(self.Filename)>0:
+                self.w = App()
+                text, okPressed = QInputDialog.getText(self.w, "Rename", "Enetr New Name:", QLineEdit.Normal, "")
+                if okPressed and text != '':
+                    self.rename_message.append(text)
+                    self.rename_message.append('rename')
+                    self.rename_message.insert(0,self.connected_name)
+                    self.rename_message.insert(1,self.sockName)
+                    self.rename_message.insert(2,'\\'.join(self.path[1:]))
+                    self.rename_message.insert(3,self.Filename[-1])
+                    self.sock.send(pickle.dumps(self.rename_message))
+    def Forward(self,MainWindow):
+        if self.accessed_device == False:
+            if os.path.isdir(str(self.lineEdit.text())):
+                self.available_Folders.clear()
+                self.available_Folders.append('...')
+                self.listWidget.clear()
+                self.path = self.lineEdit.text().split('\\')
+                self.dir_list_folder(self.lineEdit.text())
+                self.change_item_listwidget(self.available_Folders)
+            else:
+                self.warning = App()
+                buttonReply = QMessageBox.warning(self.warning, "warning",
+                                                   "windows can't find '"+str(self.lineEdit.text())+"' check the spelling and try again",
+                                                   QMessageBox.Ok, QMessageBox.Ok)
+
+    def Backward(self):
+        self.Filename =[]
+        if self.accessed_device == False:
+            if len(self.path) == 2:
+                self.listWidget.clear()
+                del self.path[-1]
+                self.available_Folders = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
+                self.available_Folders.insert(0,'...')
+                self.change_item_listwidget(self.available_Folders)
+            elif len(self.path) > 2:
+                self.available_Folders.clear()
+                self.listWidget.clear()
+                self.available_Folders.append('...')
+                del self.path[-1]
+                self.dir_list_folder('\\'.join(self.path[1:]))
+                self.change_item_listwidget(self.available_Folders)
+            elif len(self.path) == 1:
+                self.listWidget.clear()
+                self.path.clear()
+                self.available_Folders = self.available_Device[:]
+                self.change_item_listwidget(self.available_Folders)
+            self.lineEdit.setText(str(' \\ '.join(self.path)))
+    def Edit(self):
+        os.startfile(shutil.which('Notepad'))
+
+    def Copy(self):
+        self.File_name_Cut = []
+        if len(self.path) > 1 and self.Filename[-1] != '...'and self.accessed_device == False:
+            self.File_name_Copy.append('\\'.join(self.path[1:]))
+            self.File_name_Copy.append(self.Filename[-1])
+            self.File_Copy = str('\\'.join(self.path[1:])) + '\\' + str(self.Filename[-1])
+    def Cut(self):
+        self.File_name_Copy = []
+        if len(self.path) > 1 and self.Filename[-1] != '...' and len(self.Filename)>0:
+            self.File_name_Cut.append('\\'.join(self.path[1:]))
+            self.File_name_Cut.append(self.Filename[-1])
+            self.File_Cut = str('\\'.join(self.path[1:])) + '\\' + str(self.Filename[-1])
+    def Paste(self):
+        if len(self.path) > 0:
+            self.paste = '\\'.join(self.path[1:])
+        if self.accessed_device == False:
+            if len(self.File_name_Copy)!=0:
+                if self.paste != self.File_name_Copy[0]:
+                    try:
+                        shutil.copytree(self.File_Copy, self.paste+'\\'+str(self.File_name_Copy[-1]))
+                        self.available_Folders.append(self.File_name_Copy[-1])
+                    except:
+                        shutil.copy(self.File_Copy , self.paste+'\\'+str(self.File_name_Copy[-1]))
+                        self.available_Folders.append(self.File_name_Copy[-1])
+                else:
+                    if self.file_or_folder(self.File_name_Copy[-1]) == 'Folder':
+                        th = 1
+                        while os.path.isdir(self.paste + '\\' + self.File_name_Copy[-1] + '(' + str(th) + ')') == True:
+                            th += 1
+                        try:
+                            shutil.copytree(self.File_Copy, self.paste+'\\'+str(self.File_name_Copy[-1])+'('+str(th)+')')
+                            self.available_Folders.append(self.File_name_Copy[-1]+'('+str(th)+')')
+                        except:
+                            pass
+                    if self.file_or_folder(self.File_name_Copy[-1]) == 'File':
+                        for format in self.Formats:
+                            if self.File_name_Copy[-1].endswith(format):
+                                try:
+                                    th = 1
+                                    self.File_name_Copy[-1] = self.File_name_Copy[-1].replace(format,'')
+                                    print(self.File_name_Copy[-1])
+                                    shutil.copy(self.File_Copy , self.paste+'\\'+str(self.File_name_Copy[-1])+'('+str(th)+')'+format)
+                                    self.available_Folders.append(self.File_name_Copy[-1]+'('+str(th)+')'+format)
+                                    th += 1
+                                except:
+                                    pass
+                self.listWidget.clear()
+                self.change_item_listwidget(self.available_Folders)
+                self.File_name_Copy.clear()
+            if len(self.File_name_Cut)!=0:
+                if self.File_name_Cut[-1] not in os.listdir(self.paste):
+                    try:
+                        shutil.copytree(self.File_Cut, self.paste+'\\'+str(self.File_name_Cut[-1]))
+                        self.available_Folders.append(self.File_name_Cut[-1])
+                    except:
+                        shutil.copy(self.File_Cut , self.paste+'\\'+str(self.File_name_Cut[-1]))
+                        self.available_Folders.append(self.File_name_Cut[-1])
+                else:
+                    pass
+                try:
+                    os.remove(str(self.File_Cut))
+                except:
+                    shutil.rmtree(str(self.File_Cut))
+
+                self.listWidget.clear()
+                self.change_item_listwidget(self.available_Folders)
+                self.File_name_Cut.clear()
+        if self.accessed_device == True:
+            if len(self.path) > 1:
+                self.cut_message.append(self.File_Cut)
+                self.cut_message.append(self.paste+'\\'+str(self.File_name_Cut[-1]))
+                self.cut_message.insert(0,self.path[0])
+                if len(self.path[1:]) == 1:
+                    self.cut_message.append(''.join(self.path[1:])+'\\')
+                else:
+                    self.cut_message.append('\\'.join(self.path[1:]))
+                self.Cut_message(self.cut_message)
+    def request_message(self,dir):
+        dir.append('request')
+        dir.insert(1,self.sockName)
+        self.sock.send(pickle.dumps(dir))
+        dir.remove('request')
+        dir.remove(self.sockName)
+    def Delete_message(self,list):
+        list.append('Delete')
+        list.insert(1, self.sockName)
+        self.sock.send(pickle.dumps(list))
+        list.remove('Delete')
+        list.remove(self.sockName)
+    def Delete_for_otherDevice(self,recieve):
+        try:
+            os.remove('\\'.join(recieve[2:-1]))
+        except:
+            shutil.rmtree('\\'.join(recieve[2:-1]))
+        First = os.getcwd()
+        os.chdir('C:\\')
+        tobesend = os.listdir('\\'.join(recieve[2:-2]))
+        tobesend.append('order')
+        tobesend.insert(0, recieve[1])
+        tobesend.insert(1, recieve[0])
+        self.sock.send(pickle.dumps(tobesend))
+        os.chdir(First)
+    def send_directory(self,recieve):
+        if len(recieve) == 3:
+            tobesend = ['%s:' % d for d in string.ascii_uppercase if os.path.exists('%s:' % d)]
+            tobesend.append('order')
+            tobesend.insert(0, recieve[1])
+            tobesend.insert(1, recieve[0])
+            self.sock.send(pickle.dumps(tobesend))
+            tobesend.clear()
+        if len(recieve) > 3:
+            First = os.getcwd()
+            os.chdir('C:\\')
+            tobesend = os.listdir('\\'.join(recieve[2:-1]))
+            tobesend.append('order')
+            tobesend.insert(0, recieve[1])
+            tobesend.insert(1, recieve[0])
+            self.sock.send(pickle.dumps(tobesend))
+            os.chdir(First)
+
     def download_Folder(self,name,path):
         try:
             os.makedirs(self.download_place +'\\'+ name)
@@ -346,26 +647,18 @@ class Ui_MainWindow(object):
         self.Download_Message.insert(1,self.sockName)
         self.file = open(self.download_place+'\\'+name,'wb')
         self.sock.send(pickle.dumps(self.Download_Message))
-
-    def send(self):
-        if self.accessed_device == False and len(self.Filename)>0:
-            self.send_message = []
-            self.send_message.append(self.Filename[-1])
-            self.send_message.append('send')
-            self.send_message.insert(0,self.connected_name)
-            self.send_message.insert(1,self.sockName)
-            self.sock.send(pickle.dumps(self.send_message))
-            file = open('\\'.join(self.path[1:])+'\\'+self.Filename[-1], 'rb')
-            read = file.read()
-            while True:
-                self.sock.send(read)
-                read = file.read()
-                if not read:
-                    break
-            file.close()
     def chat(self):
         if self.lineEdit2.text()!= '':
             itm = QtWidgets.QListWidgetItem()
+            font = QtGui.QFont()
+            font.setFamily("Sitka Text")
+            font.setPointSize(10)
+            font.setBold(True)
+            font.setWeight(75)
+            itm.setFont(font)
+            brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
+            brush.setStyle(QtCore.Qt.NoBrush)
+            itm.setForeground(brush)
             itm.setText(self.sockName+' :: '+self.lineEdit2.text())
             self.chatroom.addItem(itm)
             self.sock.send(pickle.dumps([self.connected_name,self.sockName,self.lineEdit2.text(),'chat']))
