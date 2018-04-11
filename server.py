@@ -3,6 +3,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import os, string, shutil
 from PyQt5.QtWidgets import *
 import pickle,sys,threading,test
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox
 device = ['This PC']
 sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 sock_ip = '127.0.0.1'#or'localhost'
@@ -11,53 +13,43 @@ sock_port = 9009
 sock.bind((sock_ip,sock_port))
 sock.listen(10)
 def looprecv():
+    data = []
     try:
         while True:
             recieve = c.recv(4046)
-            try:
-                recieve1 = pickle.loads(recieve)
-            except:
-                while True:
+            if not recieve:
+                ui.file.close()
+                break
+            data.append(recieve)
+            if len(data) == 1:
+                try:
+                    recieve = pickle.loads(data[0])
+                    data.clear()
+                except:
                     print(recieve)
-                    ui.file.write(recieve)
-                    recieve = c.recv(4046)
-                    try:
-                        recieve1 = pickle.loads(recieve)
-                        break
-                    except:
-                        pass
-                if ui.file.closed == False:
-                    ui.file.close()
+                    ui.file.write(data[0])
+                    data.clear()
+            print(recieve)
+            if recieve[0] == 'server : ' + str(sock_ip):
+                if recieve[-1] == 'Delete':
+                    ui.Delete_for_otherDevice(recieve)
+                elif recieve[-1] == 'request':
+                    ui.send_directory(recieve)
+                elif recieve[-1] == 'order':
+                    ui.recieve_directory(recieve)
+                elif recieve[-1] == 'cut'and recieve[2] != recieve[3]:
+                    ui.cut_for_otherDevice(recieve)
+                elif recieve[-1] == 'NewFolder':
+                    ui.NewFolder_for_otherDevice(recieve)
+                elif recieve[-1] == 'Download_Message':
+                    ui.reply_Download(recieve)
+                elif recieve[-1] == 'chat':
+                    ui.Thread_chat(recieve)
+                elif recieve[-1] == 'send':
+                    print('send')
+                elif recieve[-1] == 'rename':
+                    ui.reply_rename(recieve)
 
-            if recieve1[0] == 'server : ' + str(sock_ip):
-                if recieve1[-1] == 'Delete':
-                    ui.Delete_for_otherDevice(recieve1)
-                if recieve1[-1] == 'request':
-                    ui.send_directory(recieve1)
-                if recieve1[-1] == 'order':
-                    ui.recieve_directory(recieve1)
-                if recieve1[-1] == 'cut'and recieve1[2] != recieve1[3]:
-                    ui.cut_for_otherDevice(recieve1)
-                if recieve1[-1] == 'NewFolder':
-                    ui.NewFolder_for_otherDevice(recieve1)
-                if recieve1[-1] == 'Download_Message':
-                    file = open(recieve1[-2],'rb')
-                    read = file.read()
-                    while True:
-                        c.send(read)
-                        read = file.read()
-                        if not read:
-                            break
-                    file.close()
-                if recieve1[-1] == 'chat':
-                    itm = QtWidgets.QListWidgetItem()
-                    itm.setText(recieve1[-3]+' :: '+recieve1[-2])
-                    ui.chatroom.addItem(itm)
-                    ui.lineEdit2.clear()
-                if recieve1[-1] == 'send':
-
-                    if ui.file_or_folder(recieve1[-2]) == 'File':
-                        ui.file = open(ui.download_place+'\\'+recieve1[-2],'wb')
     except:
         pass
 def show():
