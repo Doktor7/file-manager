@@ -4,7 +4,6 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 import pickle,socket,threading
 class App(QWidget):
-
     def __init__(self):
         super().__init__()
         self.left = 350
@@ -309,6 +308,7 @@ class Ui_MainWindow(QMainWindow,object):
         if self.accessed_device == False and len(self.path)>1 and len(self.Filename)>0:
             self.question = App()
             buttonReply = QMessageBox.question(self.question, 'Delete File', "Are you sur you want to permanently delete this file??", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            print(buttonReply)
             if buttonReply == QMessageBox.Yes:
                 if len(self.path)>1 and len(self.Filename)>0:
                     self.destiny = '\\'.join(self.path[1:])
@@ -622,6 +622,62 @@ class Ui_MainWindow(QMainWindow,object):
             tobesend.insert(1, recieve[0])
             self.sock.send(pickle.dumps(tobesend))
             os.chdir(First)
+    def recieve_directory(self,recieve):
+        self.listWidget.clear()
+        self.available_Folders = recieve[2:-1]
+        self.available_Folders.insert(0, '...')
+        if '$RECYCLE.BIN' in self.available_Folders:
+            self.available_Folders.remove('$RECYCLE.BIN')
+        if 'System Volume Information' in self.available_Folders:
+            self.available_Folders.remove('System Volume Information')
+        self.change_item_listwidget(self.available_Folders)
+        self.lineEdit.setText(' \\ '.join(self.path))
+    def Cut_message(self,list):
+        list.append('cut')
+        list.insert(1,self.sockName)
+        self.sock.send(pickle.dumps(list))
+        list.clear()
+    def cut_for_otherDevice(self,recieve):
+        try:
+            shutil.copytree(recieve[2], recieve[3])
+        except:
+            shutil.copy(recieve[2], recieve[3])
+        try:
+            os.remove(recieve[2])
+        except:
+            shutil.rmtree(recieve[2])
+        tobesend = os.listdir(recieve[4])
+        tobesend.append('order')
+        tobesend.insert(0, recieve[1])
+        tobesend.insert(1, recieve[0])
+        self.sock.send(pickle.dumps(tobesend))
+    def newFolder_Message(self,list):
+        list.append('NewFolder')
+        list.insert(1,self.sockName)
+        self.sock.send(pickle.dumps(list))
+        list.clear()
+    def NewFolder_for_otherDevice(self,recieve):
+        if os.path.isdir(recieve[-2] + '\\' + 'New Folder') == False:
+            os.mkdir(recieve[-2] + '\\' + 'New Folder')
+        else:
+            th = 1
+            while os.path.isdir(recieve[-2] + '\\' + 'New Folder' + '(' + str(th) + ')') == True:
+                th += 1
+            os.mkdir(recieve[-2] + '\\' + 'New Folder' + '(' + str(th) + ')')
+        First = os.getcwd()
+        os.chdir('C:\\')
+        tobesend = os.listdir(recieve[2])
+        tobesend.append('order')
+        tobesend.insert(0, recieve[1])
+        tobesend.insert(1, recieve[0])
+        self.sock.send(pickle.dumps(tobesend))
+        os.chdir(First)
+    def Download(self):
+        if self.accessed_device == True and len(self.path) > 1:
+            if self.file_or_folder(self.Filename[-1]) == 'File':
+                self.download_message(self.Filename[-1],self.path)
+            elif self.file_or_folder(self.Filename[-1]) == 'Folder':
+                self.download_Folder(self.Filename[-1],self.path)
 
     def download_Folder(self,name,path):
         try:
@@ -647,6 +703,39 @@ class Ui_MainWindow(QMainWindow,object):
         self.Download_Message.insert(1,self.sockName)
         self.file = open(self.download_place+'\\'+name,'wb')
         self.sock.send(pickle.dumps(self.Download_Message))
+
+    def send(self):
+        filename = 'F:\\ARGCL.mp4'
+        f = open(filename, 'rb')
+        l = f.read(4046)
+        while (l):
+            self.sock.send(l)
+            # print('Sent ', repr(list))
+            l = f.read(4046)
+        f.close()
+        # if self.accessed_device == False and len(self.Filename)>0 and self.file_or_folder(self.Filename[-1])=='File':
+        #     self.send_message = []
+        #     self.send_message.append(self.Filename[-1])
+        #     self.send_message.append('send')
+        #     self.send_message.insert(0,self.connected_name)
+        #     self.send_message.insert(1,self.sockName)
+        #     self.sock.send(pickle.dumps(self.send_message))
+        #     self.request_to_access()
+            # file = open('\\'.join(self.path[1:])+'\\'+self.Filename[-1], 'rb')
+            # read = file.read()
+            # while True:
+            #     self.sock.send(read)
+            #     read = file.read()
+            #     if not read:
+            #         break
+            # file.close()
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key_B:
+            print('kir')
+        if e.key == Qt.Key_Enter:
+            print('kiiiiiiiiir')
+        if e.key == Qt.Key_F:
+            print('dddddddd')
     def chat(self):
         if self.lineEdit2.text()!= '':
             itm = QtWidgets.QListWidgetItem()
@@ -663,3 +752,43 @@ class Ui_MainWindow(QMainWindow,object):
             self.chatroom.addItem(itm)
             self.sock.send(pickle.dumps([self.connected_name,self.sockName,self.lineEdit2.text(),'chat']))
             self.lineEdit2.clear()
+    def request_to_access(self):
+        try:
+            self.req = App()
+            Reply = QMessageBox.warning(self.req, "req",
+                                              "a device want to acces",
+                                              QMessageBox.Ok|QMessageBox.No, QMessageBox.Ok)
+        except:
+            pass
+    def reply_Download(self,recieve):
+        file = open(recieve[-2], 'rb')
+        read = file.read(4046)
+        while read:
+            self.sock.send(read)
+            read = file.read(4046)
+            if not read:
+                break
+        file.close()
+    def Thread_chat(self,recieve):
+        itm = QtWidgets.QListWidgetItem()
+        font = QtGui.QFont()
+        font.setFamily("Sitka Text")
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setWeight(75)
+        itm.setFont(font)
+        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
+        brush.setStyle(QtCore.Qt.NoBrush)
+        itm.setForeground(brush)
+        itm.setText(recieve[-3] + ' :: ' + recieve[-2])
+        self.chatroom.addItem(itm)
+    def reply_rename(self,recieve):
+        os.rename(recieve[2] + '\\' + recieve[3], recieve[2] + '\\' + recieve[-2])
+        First = os.getcwd()
+        os.chdir('C:\\')
+        tobesend = os.listdir(recieve[2])
+        tobesend.append('order')
+        tobesend.insert(0, recieve[1])
+        tobesend.insert(1, recieve[0])
+        self.sock.send(pickle.dumps(tobesend))
+        os.chdir(First)
