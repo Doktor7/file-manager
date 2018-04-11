@@ -2,9 +2,9 @@ import socket,os,filemanager
 from PyQt5 import QtCore, QtGui, QtWidgets
 import os, string, shutil
 from PyQt5.QtWidgets import *
-import pickle,sys,threading,test
+import pickle,sys,threading
 sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-sock_ip = '127.0.0.1'#or'localhost'
+sock_ip = '172.17.11.28'#or'localhost'
 sock_port = 9009
 sock.connect((sock_ip,sock_port))
 avalable_device = [str(i) for i in pickle.loads(sock.recv(1024))]
@@ -22,6 +22,47 @@ def show():
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
+
+def recvloop():
+    data = []
+    try:
+        while True:
+            recieve = sock.recv(4046)
+            if not recieve:
+                ui.file.close()
+                break
+            data.append(recieve)
+            if len(data) == 1:
+                try:
+                    recieve = pickle.loads(data[0])
+                    data.clear()
+                except:
+                    print(recieve)
+                    ui.file.write(data[0])
+                    data.clear()
+            if recieve[0] == 'client : ' + str(sock.getsockname()[1]):
+                if recieve[-1] == 'Delete':
+                    ui.Delete_for_otherDevice(recieve)
+                if recieve[-1] == 'request':
+                    ui.send_directory(recieve)
+                if recieve[-1] == 'order':
+                    ui.recieve_directory(recieve)
+                if recieve[-1] == 'cut' and recieve[2] != recieve[3]:
+                    ui.cut_for_otherDevice(recieve)
+                if recieve[-1] == 'NewFolder':
+                    ui.NewFolder_for_otherDevice(recieve)
+                if recieve[-1] == 'Download_Message':
+                    ui.reply_Download(recieve)
+                if recieve[-1] == 'chat':
+                    ui.Thread_chat(recieve)
+                if recieve[-1] == 'send':
+                    print('send')
+                if recieve[-1] == 'rename':
+                    ui.reply_rename(recieve)
+
+    except:
+        pass
+
 t2 = threading.Thread(target=show)
 t1 = threading.Thread(target=recvloop)
 t1.start()
