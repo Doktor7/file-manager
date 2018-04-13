@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import *
 import pickle,sys,threading,test
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QMessageBox
+
 device = ['This PC']
 sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 sock_ip = '127.0.0.1'#or'localhost'
@@ -29,7 +30,6 @@ def looprecv():
                     print(recieve)
                     ui.file.write(data[0])
                     data.clear()
-            print(recieve)
             if recieve[0] == 'server : ' + str(sock_ip):
                 if recieve[-1] == 'Delete':
                     ui.Delete_for_otherDevice(recieve)
@@ -46,7 +46,7 @@ def looprecv():
                 elif recieve[-1] == 'chat':
                     ui.Thread_chat(recieve)
                 elif recieve[-1] == 'send':
-                    print('send')
+                    ui.file = open(ui.download_place+'\\'+recieve[-2],'wb')
                 elif recieve[-1] == 'rename':
                     ui.reply_rename(recieve)
 

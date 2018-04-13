@@ -4,7 +4,7 @@ import os, string, shutil
 from PyQt5.QtWidgets import *
 import pickle,sys,threading
 sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-sock_ip = '172.17.11.28'#or'localhost'
+sock_ip = '127.0.0.1'#or'localhost'
 sock_port = 9009
 sock.connect((sock_ip,sock_port))
 avalable_device = [str(i) for i in pickle.loads(sock.recv(1024))]
@@ -56,7 +56,7 @@ def recvloop():
                 if recieve[-1] == 'chat':
                     ui.Thread_chat(recieve)
                 if recieve[-1] == 'send':
-                    print('send')
+                    ui.file = open(ui.download_place + '\\' + recieve[-2] , 'wb')
                 if recieve[-1] == 'rename':
                     ui.reply_rename(recieve)
 

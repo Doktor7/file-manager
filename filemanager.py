@@ -14,6 +14,9 @@ class App(QWidget):
 class Ui_MainWindow(QMainWindow,object):
     def __init__(self,sock):
         QMainWindow.__init__(self)
+        self.hide_folder = ['$GetCurrent','$Recycle.Bin','AMTAG.BIN','Boot','bootmgr','BOOTNXT','BOOTSECT.BAK','Config.Msi',\
+                            'Documents and Settings','hiberfil.sys','MSOCache','pagefile.sys','PerfLogs','ProgramData',\
+                            'Recovery','swapfile.sys','$WINER_BACKUP_PARTITION.MARKER','System Volume Information','DRIVERS','C:','$RECYCLE.BIN']
         self.download_place = '\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Downloads'
         self.file = None
         self.Download_Message = []
@@ -37,6 +40,7 @@ class Ui_MainWindow(QMainWindow,object):
                         'ogg', 'ogv', 'php', 'png', 'ppt', 'py', 'rb', 'real', 'reg', 'rtf', 'sgl', 'swf', 'txt', \
                         'vbs', 'wav', 'webm', 'wmv', 'xls', 'xlsx', 'xml', 'xsl', 'zip', 'rar', 'mkv', 'exe', 'srt',
                         '3gp', 'log', 'ico']
+
         for format in self.Formats:
             if self.available_Folders[file].endswith(format):
                 icon.addPixmap(QtGui.QPixmap(format), QtGui.QIcon.Normal, QtGui.QIcon.On)
@@ -56,6 +60,15 @@ class Ui_MainWindow(QMainWindow,object):
                 icon.addPixmap(QtGui.QPixmap('_Close.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
             self.set_icon(i, icon)
             item.setIcon(icon)
+            font = QtGui.QFont()
+            font.setFamily("Sitka Text")
+            font.setPointSize(12)
+            font.setBold(True)
+            font.setWeight(75)
+            item.setFont(font)
+            brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
+            brush.setStyle(QtCore.Qt.NoBrush)
+            item.setForeground(brush)
             item.setText(str(self.available_Folders[i]))
             self.listWidget.addItem(item)
 
@@ -66,11 +79,10 @@ class Ui_MainWindow(QMainWindow,object):
         self.path2 = []
         MainWindow.setObjectName("File Manager")
         MainWindow.resize(1350, 695)
-        # MainWindow.setStyleSheet("background-image: url(taylor.jpg);")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayoutWidget = QtWidgets.QWidget(self.centralwidget)
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 670, 620))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(235, 0, 680, 620))
         self.gridLayoutWidget.setObjectName("gridLayoutWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -79,25 +91,33 @@ class Ui_MainWindow(QMainWindow,object):
         self.listWidget.setIconSize(QtCore.QSize(40, 40))
         self.listWidget.setWordWrap(False)
         self.listWidget.setObjectName("ListWidget")
-        # self.listWidget.setStyleSheet("background-image: url(taylor.jpg);")
+        self.listWidget.setStyleSheet("border-image: url(background-2.jpg);")
         self.chatroom = QtWidgets.QListWidget(self.centralwidget)
         self.chatroom.setObjectName("chat")
-        self.chatroom.setStyleSheet("background-image: url(chat.png);")
-        self.chatroom.setGeometry(QtCore.QRect(680,0,670 , 400))
+        self.chatroom.setStyleSheet("border-image: url(chat.png);")
+        self.chatroom.setGeometry(QtCore.QRect(920,0,420 , 595))
         self.available_Folders = self.available_Device[:]
         self.change_item_listwidget(self.available_Folders)
         self.gridLayout.addWidget(self.listWidget, 1, 0, 1, 1)
         self.lineEdit = QtWidgets.QLineEdit(self.gridLayoutWidget)
         self.lineEdit.setObjectName("lineEdit")
         self.gridLayout.addWidget(self.lineEdit, 0, 0, 1, 1)
-        self.lineEdit2 = QtWidgets.QLineEdit(self.gridLayoutWidget)
+        self.lineEdit2 = QtWidgets.QLineEdit(self.centralwidget)
         self.lineEdit2.setObjectName("lineEdit2")
-        self.gridLayout.addWidget(self.lineEdit2, 680, 0, 1, 1)
+        self.lineEdit2.setGeometry(QtCore.QRect(920,600,421, 21))
         MainWindow.setCentralWidget(self.centralwidget)
+        self.actionchat = QtWidgets.QPushButton(self.centralwidget)
+        self.actionchat.setGeometry(QtCore.QRect(1320, 600, 21, 21))
+        self.actionchat.setStyleSheet("border-image: url(send message.png);")
+        self.actionchat.setText("")
+        self.actionchat.setObjectName("pushButton")
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 600, 20))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
+        self.graphicsView = QtWidgets.QGraphicsView(self.centralwidget)
+        self.graphicsView.setGeometry(QtCore.QRect(70, 480, 101, 121))
+        self.graphicsView.setObjectName("graphicsView")
         self.listWidget.itemDoubleClicked.connect(self.selecticoncange)
         self.listWidget.itemClicked.connect(self.selected)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -139,8 +159,6 @@ class Ui_MainWindow(QMainWindow,object):
         icon4.addPixmap(QtGui.QPixmap("Forward.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionForward.setIcon(icon4)
         self.actionForward.setObjectName("actionForward")
-        self.actionchat = QtWidgets.QAction(MainWindow)
-        self.actionchat.setObjectName("actionchat")
         self.actionEdit_2 = QtWidgets.QAction(MainWindow)
         self.actionEdit_2.setIcon(icon)
         self.actionEdit_2.setObjectName("actionEdit_2")
@@ -204,7 +222,6 @@ class Ui_MainWindow(QMainWindow,object):
         self.menuEdit.addAction(self.actionCopy_3)
         self.menuEdit.addAction(self.actionCut_4)
         self.menuEdit.addAction(self.actionPaste)
-        self.menuEdit.addAction(self.actionchat)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
         self.toolBar.addSeparator()
@@ -216,7 +233,6 @@ class Ui_MainWindow(QMainWindow,object):
         self.toolBar.addAction(self.actionSend)
         self.toolBar.addAction(self.actionCopy_2)
         self.toolBar.addAction(self.actionForward)
-        # self.toolBar.addAction(self.actionchat)
         self.toolBar.addAction(self.actionBackward)
         self.listWidget.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.retranslateUi(MainWindow)
@@ -233,7 +249,6 @@ class Ui_MainWindow(QMainWindow,object):
         self.actionCut.setText(_translate("MainWindow", "Cut"))
         self.actionDelete.setText(_translate("MainWindow", "Delete"))
         self.actionForward.setText(_translate("MainWindow", "Forward"))
-        self.actionchat.setText(_translate("MainWindow", "chat"))
         self.actionEdit_2.setText(_translate("MainWindow", "Edit"))
         self.actionEdit_2.setToolTip(_translate("MainWindow", "Edit"))
         self.actionPaste_2.setText(_translate("MainWindow", "Paste"))
@@ -262,7 +277,7 @@ class Ui_MainWindow(QMainWindow,object):
         self.actionRename_2.setShortcut('Ctrl+R')
         self.actionDownload.setShortcut('Ctrl+D')
         self.actionSend.setShortcut('Ctrl+S')
-        self.actionchat.setShortcut('Ctrl+P')
+        self.actionchat.setShortcut('Return')
         self.actionForward.triggered.connect(self.Forward)
         self.actionBackward.triggered.connect(self.Backward)
         self.actionNew_Folder.triggered.connect(self.add_New_Folder)
@@ -282,7 +297,7 @@ class Ui_MainWindow(QMainWindow,object):
         self.actionCut_4.triggered.connect(self.Cut)
         self.actionSend.triggered.connect(self.send)
         self.actionDownload.triggered.connect(self.Download)
-        self.actionchat.triggered.connect(self.chat)
+        self.actionchat.clicked.connect(self.chat)
     def dir_list_folder(self, paths):
         for folderName in os.listdir(paths):
             if folderName != '$RECYCLE.BIN' and folderName != 'System Volume Information':
@@ -464,13 +479,14 @@ class Ui_MainWindow(QMainWindow,object):
                     self.rename_message.insert(3,self.Filename[-1])
                     self.sock.send(pickle.dumps(self.rename_message))
     def Forward(self,MainWindow):
-        if self.accessed_device == False:
-            if os.path.isdir(str(self.lineEdit.text())):
+        if self.accessed_device == False and len(self.path)>0:
+            self.lineEdit.setText('This PC\\'+self.lineEdit.text())
+            if os.path.isdir(str(self.lineEdit.text()).replace('This PC\\','')):
                 self.available_Folders.clear()
                 self.available_Folders.append('...')
                 self.listWidget.clear()
                 self.path = self.lineEdit.text().split('\\')
-                self.dir_list_folder(self.lineEdit.text())
+                self.dir_list_folder(self.lineEdit.text().replace('This PC\\',''))
                 self.change_item_listwidget(self.available_Folders)
             else:
                 self.warning = App()
@@ -500,21 +516,34 @@ class Ui_MainWindow(QMainWindow,object):
                 self.available_Folders = self.available_Device[:]
                 self.change_item_listwidget(self.available_Folders)
             self.lineEdit.setText(str(' \\ '.join(self.path)))
+        if self.accessed_device == True:
+            if len(self.path) > 1:
+                print(self.path)
+                del self.path[-1]
+                self.request_message(self.path)
+            elif len(self.path) == 1:
+                self.path.clear()
+                self.listWidget.clear()
+                self.available_Folders = self.available_Device[:]
+                self.change_item_listwidget(self.available_Folders)
+                self.lineEdit.setText('')
     def Edit(self):
         os.startfile(shutil.which('Notepad'))
 
     def Copy(self):
         self.File_name_Cut = []
-        if len(self.path) > 1 and self.Filename[-1] != '...'and self.accessed_device == False:
-            self.File_name_Copy.append('\\'.join(self.path[1:]))
-            self.File_name_Copy.append(self.Filename[-1])
-            self.File_Copy = str('\\'.join(self.path[1:])) + '\\' + str(self.Filename[-1])
+        if len(self.Filename)>0:
+            if len(self.path) > 1 and self.Filename[-1] != '...'and self.accessed_device == False:
+                self.File_name_Copy.append('\\'.join(self.path[1:]))
+                self.File_name_Copy.append(self.Filename[-1])
+                self.File_Copy = str('\\'.join(self.path[1:])) + '\\' + str(self.Filename[-1])
     def Cut(self):
         self.File_name_Copy = []
-        if len(self.path) > 1 and self.Filename[-1] != '...' and len(self.Filename)>0:
-            self.File_name_Cut.append('\\'.join(self.path[1:]))
-            self.File_name_Cut.append(self.Filename[-1])
-            self.File_Cut = str('\\'.join(self.path[1:])) + '\\' + str(self.Filename[-1])
+        if len(self.Filename)>0:
+            if len(self.path) > 1 and self.Filename[-1] != '...':
+                self.File_name_Cut.append('\\'.join(self.path[1:]))
+                self.File_name_Cut.append(self.Filename[-1])
+                self.File_Cut = str('\\'.join(self.path[1:])) + '\\' + str(self.Filename[-1])
     def Paste(self):
         if len(self.path) > 0:
             self.paste = '\\'.join(self.path[1:])
@@ -543,7 +572,6 @@ class Ui_MainWindow(QMainWindow,object):
                                 try:
                                     th = 1
                                     self.File_name_Copy[-1] = self.File_name_Copy[-1].replace(format,'')
-                                    print(self.File_name_Copy[-1])
                                     shutil.copy(self.File_Copy , self.paste+'\\'+str(self.File_name_Copy[-1])+'('+str(th)+')'+format)
                                     self.available_Folders.append(self.File_name_Copy[-1]+'('+str(th)+')'+format)
                                     th += 1
@@ -705,37 +733,22 @@ class Ui_MainWindow(QMainWindow,object):
         self.sock.send(pickle.dumps(self.Download_Message))
 
     def send(self):
-        filename = 'F:\\ARGCL.mp4'
-        f = open(filename, 'rb')
-        l = f.read(4046)
-        while (l):
-            self.sock.send(l)
-            # print('Sent ', repr(list))
-            l = f.read(4046)
-        f.close()
-        # if self.accessed_device == False and len(self.Filename)>0 and self.file_or_folder(self.Filename[-1])=='File':
-        #     self.send_message = []
-        #     self.send_message.append(self.Filename[-1])
-        #     self.send_message.append('send')
-        #     self.send_message.insert(0,self.connected_name)
-        #     self.send_message.insert(1,self.sockName)
-        #     self.sock.send(pickle.dumps(self.send_message))
-        #     self.request_to_access()
-            # file = open('\\'.join(self.path[1:])+'\\'+self.Filename[-1], 'rb')
-            # read = file.read()
-            # while True:
-            #     self.sock.send(read)
-            #     read = file.read()
-            #     if not read:
-            #         break
-            # file.close()
-    def keyPressEvent(self, e):
-        if e.key() == Qt.Key_B:
-            print('kir')
-        if e.key == Qt.Key_Enter:
-            print('kiiiiiiiiir')
-        if e.key == Qt.Key_F:
-            print('dddddddd')
+        if self.accessed_device == False and len(self.Filename)>0 and self.file_or_folder(self.Filename[-1])=='File':
+            self.send_message = []
+            self.send_message.append(self.Filename[-1])
+            self.send_message.append('send')
+            self.send_message.insert(0,self.connected_name)
+            self.send_message.insert(1,self.sockName)
+            self.sock.send(pickle.dumps(self.send_message))
+            file = open('\\'.join(self.path[1:])+'\\'+self.Filename[-1], 'rb')
+            read = file.read(4046)
+            while read:
+                print(read)
+                self.sock.send(read)
+                read = file.read(4046)
+                if not read:
+                    break
+            file.close()
     def chat(self):
         if self.lineEdit2.text()!= '':
             itm = QtWidgets.QListWidgetItem()
@@ -752,14 +765,6 @@ class Ui_MainWindow(QMainWindow,object):
             self.chatroom.addItem(itm)
             self.sock.send(pickle.dumps([self.connected_name,self.sockName,self.lineEdit2.text(),'chat']))
             self.lineEdit2.clear()
-    def request_to_access(self):
-        try:
-            self.req = App()
-            Reply = QMessageBox.warning(self.req, "req",
-                                              "a device want to acces",
-                                              QMessageBox.Ok|QMessageBox.No, QMessageBox.Ok)
-        except:
-            pass
     def reply_Download(self,recieve):
         file = open(recieve[-2], 'rb')
         read = file.read(4046)
