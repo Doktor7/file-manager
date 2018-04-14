@@ -16,7 +16,7 @@ class Ui_MainWindow(QMainWindow,object):
         QMainWindow.__init__(self)
         self.hide_folder = ['$GetCurrent','$Recycle.Bin','AMTAG.BIN','Boot','bootmgr','BOOTNXT','BOOTSECT.BAK','Config.Msi',\
                             'Documents and Settings','hiberfil.sys','MSOCache','pagefile.sys','PerfLogs','ProgramData',\
-                            'Recovery','swapfile.sys','$WINER_BACKUP_PARTITION.MARKER','System Volume Information','DRIVERS','C:','$RECYCLE.BIN']
+                            'Recovery','swapfile.sys','$WINER_BACKUP_PARTITION.MARKER','System Volume Information','DRIVERS','$RECYCLE.BIN']
         self.download_place = '\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Downloads'
         self.file = None
         self.Download_Message = []
@@ -94,7 +94,7 @@ class Ui_MainWindow(QMainWindow,object):
         self.listWidget.setStyleSheet("border-image: url(background-2.jpg);")
         self.chatroom = QtWidgets.QListWidget(self.centralwidget)
         self.chatroom.setObjectName("chat")
-        self.chatroom.setStyleSheet("border-image: url(chat.png);")
+        self.chatroom.setStyleSheet("border-image: url(chat.jpg);")
         self.chatroom.setGeometry(QtCore.QRect(920,0,420 , 595))
         self.available_Folders = self.available_Device[:]
         self.change_item_listwidget(self.available_Folders)
@@ -116,8 +116,9 @@ class Ui_MainWindow(QMainWindow,object):
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.graphicsView = QtWidgets.QGraphicsView(self.centralwidget)
-        self.graphicsView.setGeometry(QtCore.QRect(70, 480, 101, 121))
+        self.graphicsView.setGeometry(QtCore.QRect(10, 475, 220, 145))
         self.graphicsView.setObjectName("graphicsView")
+        self.graphicsView.setStyleSheet("border-image: url(thumbnail.jpg);")
         self.listWidget.itemDoubleClicked.connect(self.selecticoncange)
         self.listWidget.itemClicked.connect(self.selected)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -133,6 +134,47 @@ class Ui_MainWindow(QMainWindow,object):
         self.toolBar.setMinimumSize(QtCore.QSize(0, 0))
         self.toolBar.setIconSize(QtCore.QSize(40, 40))
         self.toolBar.setObjectName("toolBar")
+        self.treeWidget = QtWidgets.QTreeWidget(self.centralwidget)
+        self.treeWidget.setGeometry(QtCore.QRect(10, 0, 220, 470))
+        self.treeWidget.setObjectName("treeWidget")
+        self.treeWidget.setAnimated(True)
+        self.treeWidget.setIndentation(20)
+        self.treeWidget.setSortingEnabled(True)
+        self.treeWidget.setStyleSheet("border-image: url(background-2.jpg);")
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap("Quick-Access.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.treeWidget.headerItem().setIcon(0, icon)
+        self.treeWidget.headerItem().setText(0,'Quick access')
+        item_0 = QtWidgets.QTreeWidgetItem(self.treeWidget)
+        icon1 = QtGui.QIcon()
+        icon1.addPixmap(QtGui.QPixmap("Desktop.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        item_0.setIcon(0, icon1)
+        item_0.setText(0,'Desktop')
+        self.show_directory(item_0, os.listdir('\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Desktop'),'\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Desktop\\')
+        item_1 = QtWidgets.QTreeWidgetItem(self.treeWidget)
+        icon2 = QtGui.QIcon()
+        icon2.addPixmap(QtGui.QPixmap("downlaods.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        item_1.setIcon(0, icon2)
+        item_1.setText(0,'Downloads')
+        self.show_directory(item_1, os.listdir('\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Downloads'), '\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Downloads\\')
+        item_2 = QtWidgets.QTreeWidgetItem(self.treeWidget)
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap("Document.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        item_2.setIcon(0, icon3)
+        item_2.setText(0,'Documents')
+        self.show_directory(item_2, os.listdir('\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Documents'), '\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Documents\\')
+        item_3 = QtWidgets.QTreeWidgetItem(self.treeWidget)
+        icon4 = QtGui.QIcon()
+        icon4.addPixmap(QtGui.QPixmap("Pictures.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        item_3.setIcon(0, icon4)
+        item_3.setText(0,'Pictures')
+        self.show_directory(item_3, os.listdir('\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Pictures'), '\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Pictures\\')
+        item_4 = QtWidgets.QTreeWidgetItem(self.treeWidget)
+        icon5 = QtGui.QIcon()
+        icon5.addPixmap(QtGui.QPixmap("Music.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        item_4.setIcon(0, icon5)
+        item_4.setText(0,'Music')
+        self.show_directory(item_4, os.listdir('\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Music'), '\\'.join(os.getcwd().split('\\')[0:3])+'\\'+'Music\\')
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
         self.actionEdit = QtWidgets.QAction(MainWindow)
         icon = QtGui.QIcon()
@@ -298,6 +340,32 @@ class Ui_MainWindow(QMainWindow,object):
         self.actionSend.triggered.connect(self.send)
         self.actionDownload.triggered.connect(self.Download)
         self.actionchat.clicked.connect(self.chat)
+    def File_or_Folder(self, text):
+        if '.' in text:
+            return 'File'
+        else:
+            return 'Folder'
+    def show_directory(self,item,list,path):
+        for F in list:
+            if F not in self.hide_folder:
+                icon = QtGui.QIcon()
+                pre_item = QtWidgets.QTreeWidgetItem()
+                pre_item.setText(0,str(F))
+                if self.File_or_Folder(F) == 'File':
+                    for format in self.Formats:
+                        if F.endswith(format):
+                            icon.addPixmap(QtGui.QPixmap(format), QtGui.QIcon.Normal, QtGui.QIcon.On)
+                            pre_item.setIcon(0, icon)
+
+                item.addChild(pre_item)
+                if self.File_or_Folder(F) == 'Folder':
+                    icon.addPixmap(QtGui.QPixmap('_Close.png'), QtGui.QIcon.Normal, QtGui.QIcon.On)
+                    pre_item.setIcon(0,icon)
+                    try:
+                        os.listdir(path + str(F))
+                        self.show_directory(pre_item,os.listdir(path+str(F)),path+str(F)+'\\')
+                    except:
+                        pass
     def dir_list_folder(self, paths):
         for folderName in os.listdir(paths):
             if folderName != '$RECYCLE.BIN' and folderName != 'System Volume Information':
@@ -317,8 +385,12 @@ class Ui_MainWindow(QMainWindow,object):
         self.Filename = []
         for it in self.listWidget.selectedItems():
             self.Filename.append(it.text())
-
-
+        if self.Filename[0].endswith('jpg') and self.accessed_device == False:
+            self.thumbnail(self.Filename[0])
+        else:
+            self.graphicsView.setStyleSheet("border-image: url(thumbnail.jpg);")
+    def thumbnail(self,name):
+        self.graphicsView.setStyleSheet("border-image: url("+'/'.join(self.path[1:])+'/'+name+");")
     def delete(self):
         if self.accessed_device == False and len(self.path)>1 and len(self.Filename)>0:
             self.question = App()
@@ -352,6 +424,7 @@ class Ui_MainWindow(QMainWindow,object):
                 self.path.remove(self.Filename[-1])
 
     def selecticoncange(self):
+        self.Filename = []
         self.available_Folders.clear()
         self.available_Folders.append('...')
         for currentitem in self.listWidget.selectedItems():
@@ -415,8 +488,6 @@ class Ui_MainWindow(QMainWindow,object):
                 self.lineEdit.setText('')
             self.change_item_listwidget(self.available_Folders)
 
-
-        self.Filename=[]
     def add_New_Folder(self):
         if self.accessed_device == False:
             if len(self.path)>1:
@@ -493,7 +564,6 @@ class Ui_MainWindow(QMainWindow,object):
                 buttonReply = QMessageBox.warning(self.warning, "warning",
                                                    "windows can't find '"+str(self.lineEdit.text())+"' check the spelling and try again",
                                                    QMessageBox.Ok, QMessageBox.Ok)
-
     def Backward(self):
         self.Filename =[]
         if self.accessed_device == False:
@@ -758,7 +828,7 @@ class Ui_MainWindow(QMainWindow,object):
             font.setBold(True)
             font.setWeight(75)
             itm.setFont(font)
-            brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
+            brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
             brush.setStyle(QtCore.Qt.NoBrush)
             itm.setForeground(brush)
             itm.setText(self.sockName+' :: '+self.lineEdit2.text())
@@ -782,7 +852,7 @@ class Ui_MainWindow(QMainWindow,object):
         font.setBold(True)
         font.setWeight(75)
         itm.setFont(font)
-        brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
+        brush = QtGui.QBrush(QtGui.QColor(0, 0, 0))
         brush.setStyle(QtCore.Qt.NoBrush)
         itm.setForeground(brush)
         itm.setText(recieve[-3] + ' :: ' + recieve[-2])
