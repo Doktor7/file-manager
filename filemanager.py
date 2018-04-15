@@ -2,7 +2,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import os, string, shutil
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
-import pickle,socket,threading
+import pickle,socket,threading,time
 class App(QWidget):
     def __init__(self):
         super().__init__()
@@ -140,6 +140,7 @@ class Ui_MainWindow(QMainWindow,object):
         self.treeWidget.setAnimated(True)
         self.treeWidget.setIndentation(20)
         self.treeWidget.setSortingEnabled(True)
+        self.treeWidget.itemClicked.connect(self.treeclick)
         self.treeWidget.setStyleSheet("border-image: url(background-2.jpg);")
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("Quick-Access.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -340,6 +341,19 @@ class Ui_MainWindow(QMainWindow,object):
         self.actionSend.triggered.connect(self.send)
         self.actionDownload.triggered.connect(self.Download)
         self.actionchat.clicked.connect(self.chat)
+    def treeclick(self):
+        for c in self.treeWidget.selectedItems():
+            if c.text(0) == 'Desktop'or c.text(0)=='Downloads'or c.text(0)=='Documents'or c.text(0)=='Music'or c.text(0)=='Pictures':
+                self.accessed_device = False
+                self.path.clear()
+                self.path = ('\\'.join(os.getcwd().split('\\')[0:3])+'\\'+c.text(0)).split('\\')
+                self.path.insert(0,'This PC')
+                self.lineEdit.setText('This PC\\'+'\\'.join(self.path[1:]))
+                self.listWidget.clear()
+                self.available_Folders.clear()
+                self.available_Folders.append('...')
+                self.dir_list_folder('\\'.join(self.path[1:]))
+                self.change_item_listwidget(self.available_Folders)
     def File_or_Folder(self, text):
         if '.' in text:
             return 'File'
@@ -811,11 +825,11 @@ class Ui_MainWindow(QMainWindow,object):
             self.send_message.insert(1,self.sockName)
             self.sock.send(pickle.dumps(self.send_message))
             file = open('\\'.join(self.path[1:])+'\\'+self.Filename[-1], 'rb')
-            read = file.read(4046)
+            read = file.read(10000000)
             while read:
                 print(read)
                 self.sock.send(read)
-                read = file.read(4046)
+                read = file.read(10000000)
                 if not read:
                     break
             file.close()
@@ -837,10 +851,10 @@ class Ui_MainWindow(QMainWindow,object):
             self.lineEdit2.clear()
     def reply_Download(self,recieve):
         file = open(recieve[-2], 'rb')
-        read = file.read(4046)
+        read = file.read(10000000)
         while read:
             self.sock.send(read)
-            read = file.read(4046)
+            read = file.read(10000000)
             if not read:
                 break
         file.close()

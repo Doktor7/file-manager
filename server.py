@@ -17,7 +17,7 @@ def looprecv():
     data = []
     try:
         while True:
-            recieve = c.recv(4046)
+            recieve = c.recv(100000000)
             if not recieve:
                 ui.file.close()
                 break
