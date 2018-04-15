@@ -27,7 +27,7 @@ def recvloop():
     data = []
     try:
         while True:
-            recieve = sock.recv(4046)
+            recieve = sock.recv(100000000)
             if not recieve:
                 ui.file.close()
                 break
